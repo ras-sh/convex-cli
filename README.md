@@ -58,13 +58,10 @@ npm run cli todos delete-todo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
 
 ### Basic Usage
 
-The CLI automatically generates commands based on your Convex API structure. Functions are organized by module, with root-level functions available directly and module functions available as subcommands. All names are converted to kebab-case for consistency.
+The CLI automatically generates commands based on your Convex API structure. Functions are organized by module, with both module and function names converted to kebab-case for consistency.
 
 ```bash
-# Root-level functions (camelCase becomes kebab-case)
-your-cli <function-name> [args...]
-
-# Module functions (both module and function names converted)
+# Module functions (both module and function names converted to kebab-case)
 your-cli <module-name> <function-name> [args...]
 ```
 
@@ -114,58 +111,3 @@ const cli = createCli({
 
 cli.run({ logger: console });
 ```
-
-
-## API Reference
-
-### `createCli(params)`
-
-Creates a CLI instance.
-
-**Parameters:**
-- `api`: Your Convex API object (required)
-- `functions?`: Optional array of function definitions
-- `url?`: Convex URL override
-- `name?`: CLI program name (default: "convex-cli")
-- `version?`: CLI version
-- `description?`: CLI description
-
-**Returns:** CLI object with `run()` and `buildProgram()` methods
-
-
-## AST-Based Discovery
-
-This library uses TypeScript's Abstract Syntax Tree (AST) analysis for function discovery, providing several key advantages:
-
-### Benefits
-
-- **Accuracy**: Handles all valid TypeScript syntax, including complex formatting and edge cases
-- **Reliability**: No fragile regex patterns that break with code style changes
-- **Type Safety**: Extracts actual TypeScript type information from validator definitions
-- **Maintainability**: Easy to extend for new Convex validator types and patterns
-- **Performance**: Efficient parsing with optimized regex only for predictable generated code
-
-### Supported Validators
-
-The AST parser recognizes and handles:
-
-- **Basic types**: `v.string()`, `v.number()`, `v.boolean()`, `v.int64()`, `v.float64()`
-- **IDs**: `v.id("tableName")`
-- **Optional values**: `v.optional(v.string())`
-- **Arrays**: `v.array(v.string())`
-- **Objects**: `v.object({ ... })`
-- **Literals**: `v.literal("value")`
-- **Unions**: `v.union(v.string(), v.number())`
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
-
-## License
-
-MIT - see [LICENSE](LICENSE) file for details.
-
-## Related
-
-- [Convex](https://www.convex.dev/) - The backend-as-a-service platform
-- [Commander.js](https://github.com/tj/commander.js) - CLI framework used internally
