@@ -1,0 +1,53 @@
+{
+  "name": "@ras.sh/convex-cli",
+  "version": "0.1.0",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://ras.sh/convex-cli",
+  "bugs": {
+    "url": "https://github.com/ras-sh/convex-cli/issues",
+    "email": "hi@ras.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ras-sh/convex-cli"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Richard Solomou",
+    "email": "hi@ras.sh",
+    "url": "https://ras.sh"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "check-types": "tsc --noEmit",
+    "check": "ultracite check",
+    "fix": "ultracite fix --unsafe",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "commander": "^14.0.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "@types/node": "^24.5.2",
+    "convex": "^1.27.1",
+    "convex-helpers": "^0.1.104",
+    "lefthook": "^1.13.1",
+    "tsdown": "^0.15.4",
+    "typescript": "^5.9.2",
+    "ultracite": "5.3.10",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "convex": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

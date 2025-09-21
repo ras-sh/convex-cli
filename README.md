@@ -1,1 +1,1 @@
-# convex-cli
+# @ras.sh/convex-cli
