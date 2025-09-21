@@ -15,8 +15,8 @@ const MODULE_IMPORT_REGEX = /import type \* as (\w+) from "\.\.\/(.+?)\.js";/g;
 const OPTIONAL_VALIDATOR_REGEX = /v\.optional\((.+)\)/;
 
 /**
- * AST-based parser for Convex functions using ts-morph
- * Replaces regex-based parsing with proper TypeScript AST analysis
+ * TypeScript AST-based parser for Convex functions using ts-morph
+ * Provides accurate and robust function discovery through static analysis
  */
 export class ConvexAstParser {
   private readonly project: Project;
@@ -35,7 +35,7 @@ export class ConvexAstParser {
   }
 
   /**
-   * Discover Convex functions from the filesystem using AST parsing
+   * Discover Convex functions by parsing TypeScript source files
    */
   discoverConvexFunctions(convexDir = "./convex"): FunctionDefinition[] {
     const functions: FunctionDefinition[] = [];
@@ -75,15 +75,15 @@ export class ConvexAstParser {
   }
 
   /**
-   * Extract module information from API file
-   * Keep the regex approach here since this is parsing generated code with predictable structure
+   * Extract module information from generated API file
+   * Uses regex for reliable parsing of predictable generated code structure
    */
   private extractModulesFromApi(
     apiContent: string
   ): Array<{ name: string; file: string }> {
     const modules: Array<{ name: string; file: string }> = [];
 
-    // Reset the regex lastIndex to ensure clean matching
+    // Reset regex state for clean matching across multiple calls
     MODULE_IMPORT_REGEX.lastIndex = 0;
 
     let match: RegExpExecArray | null = MODULE_IMPORT_REGEX.exec(apiContent);
@@ -99,7 +99,7 @@ export class ConvexAstParser {
   }
 
   /**
-   * Extract functions from a module using AST parsing
+   * Extract functions from a TypeScript module using AST analysis
    */
   private extractFunctionsFromModule(
     content: string,
@@ -316,7 +316,7 @@ export class ConvexAstParser {
       return { type: "array", required: true };
     }
 
-    // Default fallback
+    // Default to string type for unknown validators
     return { type: "string", required: true };
   }
 }

@@ -5,7 +5,7 @@ A type-safe command-line interface for calling Convex backend functions. Execute
 ## Features
 
 - 🚀 **Type-Safe**: Leverages your Convex generated types for automatic argument validation
-- 🔍 **Auto-Discovery**: Automatically discovers functions from your Convex API
+- 🔍 **AST-Based Discovery**: Intelligent TypeScript analysis for accurate function discovery
 - 📝 **Smart Parsing**: Converts CLI arguments to proper Convex function inputs
 - 🎯 **Function Types**: Supports queries, mutations, and actions
 - ⚙️ **Flexible Configuration**: Environment-based URL configuration
@@ -83,7 +83,7 @@ your-cli todos deleteTodo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
 
 ### Function Discovery
 
-The CLI uses filesystem discovery to automatically find your Convex functions by parsing your Convex source files and the generated `_generated/api.d.ts` file. This approach provides complete type information and argument validation schemas.
+The CLI uses TypeScript AST (Abstract Syntax Tree) analysis to automatically discover your Convex functions. It parses your TypeScript source files and the generated `_generated/api.d.ts` file to extract complete type information and argument validation schemas with high accuracy and reliability.
 
 ## Configuration
 
@@ -172,6 +172,41 @@ Manually discover functions with custom options.
 **Parameters:**
 - `options.convexDir?`: Custom convex directory path (default: "./convex")
 
+### `ConvexAstParser`
+
+Advanced users can directly use the AST parser for fine-grained control:
+
+```typescript
+import { ConvexAstParser } from "@ras-sh/convex-cli";
+
+const parser = new ConvexAstParser();
+const functions = parser.discoverConvexFunctions("./convex");
+```
+
+## AST-Based Discovery
+
+This library uses TypeScript's Abstract Syntax Tree (AST) analysis for function discovery, providing several key advantages:
+
+### Benefits
+
+- **Accuracy**: Handles all valid TypeScript syntax, including complex formatting and edge cases
+- **Reliability**: No fragile regex patterns that break with code style changes
+- **Type Safety**: Extracts actual TypeScript type information from validator definitions
+- **Maintainability**: Easy to extend for new Convex validator types and patterns
+- **Performance**: Efficient parsing with optimized regex only for predictable generated code
+
+### Supported Validators
+
+The AST parser recognizes and handles:
+
+- **Basic types**: `v.string()`, `v.number()`, `v.boolean()`, `v.int64()`, `v.float64()`
+- **IDs**: `v.id("tableName")`
+- **Optional values**: `v.optional(v.string())`
+- **Arrays**: `v.array(v.string())`
+- **Objects**: `v.object({ ... })`
+- **Literals**: `v.literal("value")`
+- **Unions**: `v.union(v.string(), v.number())`
+
 ## Development
 
 ### Prerequisites
@@ -220,7 +255,7 @@ src/
 │   └── options.ts        # Option and argument handling
 └── discovery/
     ├── index.ts          # Function discovery coordination
-    └── filesystem.ts     # Filesystem-based discovery
+    └── ast-parser.ts     # TypeScript AST-based discovery
 ```
 
 ## Examples
@@ -245,6 +280,7 @@ This project uses:
 - **Biome**: Fast formatter and linter
 - **Vitest**: Modern testing framework
 - **TypeScript**: Strict type checking
+- **ts-morph**: TypeScript AST manipulation
 - **Ultracite**: Zero-config code quality
 
 ## License

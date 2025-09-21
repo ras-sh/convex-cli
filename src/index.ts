@@ -13,6 +13,12 @@ import type {
 } from "./types";
 import { defaultLogger, formatError } from "./utils";
 
+// Export discovery functionality for advanced usage
+export {
+  ConvexAstParser,
+  type DiscoveryOptions,
+  discoverFunctions,
+} from "./discovery/index";
 export type { FunctionDefinition } from "./types";
 export * from "./types";
 
