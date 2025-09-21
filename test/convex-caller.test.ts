@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ConvexCaller } from "../src/convex-caller";
+import { ConvexCaller } from "../src/convex-client";
 
 // Create a minimal fake Convex client via dynamic import interception
 vi.mock("convex/browser", () => {

@@ -1,10 +1,10 @@
 import type { Command } from "commander";
-import { buildCliProgram } from "./build-commands";
-import { ConvexCaller } from "./convex-caller";
+import { buildCliProgram } from "./cli/commands";
+import { ConvexCaller } from "./convex-client";
 import {
   convertFunctionDefinitions,
   discoverFunctions,
-} from "./function-discovery";
+} from "./discovery/index";
 import type {
   ConvexCli,
   ConvexCliParams,

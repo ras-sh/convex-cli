@@ -1,11 +1,11 @@
 import { Command } from "commander";
 import { describe, expect, it, vi } from "vitest";
-import { buildCliProgram } from "../src/build-commands";
-import type { ConvexCaller } from "../src/convex-caller";
+import { buildCliProgram } from "../src/cli/commands";
+import type { ConvexCaller } from "../src/convex-client";
 import type { ParsedFunction } from "../src/types";
 
 // Mock ConvexCaller
-vi.mock("../src/convex-caller");
+vi.mock("../src/convex-client");
 
 const mockCaller = {
   callFunction: vi.fn(),

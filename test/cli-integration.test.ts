@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createCli } from "../src/index";
 
 // Minimal fake caller via mocking ConvexCaller to avoid real network
-vi.mock("../src/convex-caller", () => {
+vi.mock("../src/convex-client", () => {
   class FakeCaller {
-    callFunction(path: string, type: string, args: Record<string, unknown>) {
-      return Promise.resolve({ ok: true, path, type, args });
+    callFunction(path: string, _type: string, args: Record<string, unknown>) {
+      return Promise.resolve({ ok: true, path, args });
     }
   }
   return { ConvexCaller: FakeCaller };

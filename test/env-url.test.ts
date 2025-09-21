@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCli } from "../src/index";
 
-vi.mock("../src/build-commands", () => {
+vi.mock("../src/cli/commands", () => {
   const fakeProgram = {
     version: () => fakeProgram,
     description: () => fakeProgram,

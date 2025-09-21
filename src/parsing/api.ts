@@ -3,8 +3,8 @@ import type {
   FunctionReference,
   FunctionType,
   ParsedFunction,
-} from "./types";
-import { isObject } from "./utils";
+} from "../types";
+import { isObject } from "../utils";
 
 export function parseConvexApi(api: ConvexApi): ParsedFunction[] {
   const functions: ParsedFunction[] = [];

@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ArgDefinition, FunctionDefinition, FunctionType } from "./types";
+import type { ArgDefinition, FunctionDefinition, FunctionType } from "../types";
 
 // Regex patterns used across the module
 const ARGS_BLOCK_REGEX = /args:\s*\{([^}]+)\}/s;

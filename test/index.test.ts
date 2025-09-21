@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCli } from "../src/index";
 import type { FunctionDefinition } from "../src/types";
 
-vi.mock("../src/discover-functions");
-vi.mock("../src/convex-caller");
+vi.mock("../src/discovery/filesystem");
+vi.mock("../src/convex-client");
 
-import { ConvexCaller } from "../src/convex-caller";
+import { ConvexCaller } from "../src/convex-client";
 import {
   discoverConvexFunctions,
   tryExtractFromRuntimeApi,
-} from "../src/discover-functions";
+} from "../src/discovery/filesystem";
 
 const mockDiscoverConvexFunctions = vi.mocked(discoverConvexFunctions);
 const mockTryExtractFromRuntimeApi = vi.mocked(tryExtractFromRuntimeApi);

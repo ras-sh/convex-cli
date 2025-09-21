@@ -1,7 +1,7 @@
 import type { Command } from "commander";
-import { Argument, Option } from "commander";
-import type { JsonSchema } from "./types";
-import { kebabCase } from "./utils";
+import { Option } from "commander";
+import type { JsonSchema } from "../types";
+import { kebabCase } from "../utils";
 
 /**
  * Add an option for a JSON schema property to a command
@@ -87,51 +87,4 @@ export function addOptionForProperty(
   }
 
   command.addOption(option);
-}
-
-/**
- * Add positional argument for a simple property
- */
-export function addPositionalArgument(
-  command: Command,
-  propName: string,
-  propSchema: JsonSchema
-): void {
-  const argument = new Argument(
-    `<${propName}>`,
-    propSchema.description || `${propName} (${propSchema.type})`
-  );
-
-  if (propSchema.type === "number") {
-    argument.argParser((value) => {
-      const num = Number(value);
-      if (Number.isNaN(num)) {
-        throw new Error(`Invalid number: ${value}`);
-      }
-      return num;
-    });
-  }
-
-  command.addArgument(argument);
-}
-
-/**
- * Extract positional arguments from schema
- */
-export function extractPositionalArgs(schema: JsonSchema): string[] {
-  const positional: string[] = [];
-
-  if (schema.type === "object" && schema.properties) {
-    for (const [name, prop] of Object.entries(schema.properties)) {
-      // Only simple types can be positional (booleans are handled as options)
-      if (prop.type === "string" || prop.type === "number") {
-        const isRequired = schema.required?.includes(name) ?? false;
-        if (isRequired) {
-          positional.push(name);
-        }
-      }
-    }
-  }
-
-  return positional;
 }

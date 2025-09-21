@@ -12,7 +12,7 @@ import type {
   VString,
   VUnion,
 } from "convex/values";
-import type { JsonSchema } from "./types";
+import type { JsonSchema } from "../types";
 
 // Type guards for validator kinds
 function isStringValidator(validator: GenericValidator): validator is VString {
@@ -219,19 +219,23 @@ export function extractPositionalArgs(schema: JsonSchema): Array<{
   }> = [];
 
   if (schema.type === "object" && schema.properties) {
-    for (const [name, prop] of Object.entries(schema.properties)) {
+    for (const [name, propSchema] of Object.entries(schema.properties)) {
+      if (!propSchema) {
+        continue;
+      }
+
       // Only simple types can be positional
       if (
-        prop.type === "string" ||
-        prop.type === "number" ||
-        prop.type === "boolean"
+        propSchema.type === "string" ||
+        propSchema.type === "number" ||
+        propSchema.type === "boolean"
       ) {
         const required = schema.required?.includes(name) ?? false;
         positional.push({
           name,
-          type: prop.type,
+          type: propSchema.type,
           required,
-          description: prop.description,
+          description: propSchema.description,
         });
       }
     }

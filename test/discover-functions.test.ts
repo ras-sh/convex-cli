@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   discoverConvexFunctions,
   tryExtractFromRuntimeApi,
-} from "../src/discover-functions";
+} from "../src/discovery/filesystem";
 
 // Mock fs module
 vi.mock("fs");

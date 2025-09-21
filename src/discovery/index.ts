@@ -1,10 +1,10 @@
+import { parseConvexApi } from "../parsing/api";
+import { generateJsonSchemaFromArgs } from "../schema-generator";
+import type { ConvexApi, FunctionDefinition, ParsedFunction } from "../types";
 import {
   discoverConvexFunctions,
   tryExtractFromRuntimeApi,
-} from "./discover-functions";
-import { parseConvexApi } from "./parse-api";
-import { generateJsonSchemaFromArgs } from "./schema-utils";
-import type { ConvexApi, FunctionDefinition, ParsedFunction } from "./types";
+} from "./filesystem";
 
 /**
  * Unified function discovery strategy

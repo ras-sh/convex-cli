@@ -1,9 +1,43 @@
 import { Command } from "commander";
-import { buildInputFromOptions } from "./argument-parser";
-import type { ConvexCaller } from "./convex-caller";
-import { addOptionForProperty } from "./option-builder";
-import type { ConvexCliRunParams, ParsedFunction } from "./types";
-import { kebabCase } from "./utils";
+import type { ConvexCaller } from "../convex-client";
+import type { ConvexCliRunParams, JsonSchema, ParsedFunction } from "../types";
+import { kebabCase } from "../utils";
+import { addOptionForProperty } from "./options";
+
+/**
+ * Build input object from options only (no positional arguments)
+ */
+function buildInputFromOptions(
+  schema: JsonSchema,
+  options: Record<string, unknown>
+): Record<string, unknown> {
+  if (schema.type !== "object" || !schema.properties) {
+    return options;
+  }
+
+  const input: Record<string, unknown> = {};
+
+  // Add options with proper type conversion
+  for (const [key, value] of Object.entries(options)) {
+    if (value !== undefined) {
+      // Convert string booleans to actual booleans based on schema
+      const propSchema = schema.properties?.[key];
+      if (propSchema?.type === "boolean" && typeof value === "string") {
+        if (value === "true") {
+          input[key] = true;
+        } else if (value === "false") {
+          input[key] = false;
+        } else {
+          input[key] = value; // Let Convex handle the validation error
+        }
+      } else {
+        input[key] = value;
+      }
+    }
+  }
+
+  return input;
+}
 
 /**
  * Build the CLI program structure from parsed functions
