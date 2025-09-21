@@ -14,11 +14,11 @@ A type-safe command-line interface for calling Convex backend functions. Execute
 ## Installation
 
 ```bash
-npm install @ras.sh/convex-cli
+npm install @ras-sh/convex-cli
 # or
-pnpm add @ras.sh/convex-cli
+pnpm add @ras-sh/convex-cli
 # or
-yarn add @ras.sh/convex-cli
+yarn add @ras-sh/convex-cli
 ```
 
 ## Quick Start
@@ -32,7 +32,7 @@ export CONVEX_URL="http://localhost:3210"
 
 2. **Create your CLI:**
 ```typescript
-import { createCli } from "@ras.sh/convex-cli";
+import { createCli } from "@ras-sh/convex-cli";
 import { api } from "../convex/_generated/api";
 
 const cli = createCli({
@@ -145,8 +145,8 @@ const cli = createCli({
 ### Custom Discovery Strategy
 
 ```typescript
-import { createCli } from "@ras.sh/convex-cli";
-import { discoverFunctions, DiscoveryStrategy } from "@ras.sh/convex-cli";
+import { createCli } from "@ras-sh/convex-cli";
+import { discoverFunctions, DiscoveryStrategy } from "@ras-sh/convex-cli";
 
 const functions = discoverFunctions(api, {
   strategy: DiscoveryStrategy.FILESYSTEM,

@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      '@ras.sh/convex-cli':
+      '@ras-sh/convex-cli':
         specifier: file:../..
         version: file:../..(convex@1.27.1)
       convex:
@@ -333,7 +333,7 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@ras.sh/convex-cli@file:../..':
+  '@ras-sh/convex-cli@file:../..':
     resolution: {directory: ../.., type: directory}
     engines: {node: '>=20'}
     peerDependencies:
@@ -560,7 +560,7 @@ snapshots:
   '@esbuild/win32-x64@0.25.4':
     optional: true
 
-  '@ras.sh/convex-cli@file:../..(convex@1.27.1)':
+  '@ras-sh/convex-cli@file:../..(convex@1.27.1)':
     dependencies:
       commander: 14.0.1
       convex: 1.27.1

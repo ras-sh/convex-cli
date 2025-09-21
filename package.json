@@ -1,5 +1,5 @@
 {
-  "name": "@ras.sh/convex-cli",
+  "name": "@ras-sh/convex-cli",
   "version": "0.1.0",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
