@@ -43,44 +43,48 @@ createCli({ api }).run({ logger: console });
 3. **Run your Convex functions:**
 ```bash
 # Query examples
-npm run cli todos getAll
-npm run cli healthCheck get
+npm run cli todos get-all
+npm run cli health-check get
 
 # Mutation examples
 npm run cli todos create --text "Buy milk"
 npm run cli todos toggle --id "j57d6h3k66q0q0q0q0q0q0q0q0q0" --completed true
 
 # With module functions
-npm run cli todos deleteTodo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
+npm run cli todos delete-todo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
 ```
 
 ## Usage
 
 ### Basic Usage
 
-The CLI automatically generates commands based on your Convex API structure. Functions are organized by module, with root-level functions available directly and module functions available as subcommands.
+The CLI automatically generates commands based on your Convex API structure. Functions are organized by module, with root-level functions available directly and module functions available as subcommands. All names are converted to kebab-case for consistency.
 
 ```bash
-# Root-level functions
+# Root-level functions (camelCase becomes kebab-case)
 your-cli <function-name> [args...]
 
-# Module functions
-your-cli <module> <function-name> [args...]
+# Module functions (both module and function names converted)
+your-cli <module-name> <function-name> [args...]
 ```
 
 ### Argument Handling
 
-All function arguments are passed as command-line options using `--` prefix:
+All function arguments are passed as command-line options using `--` prefix. Command names and option names are automatically converted to kebab-case:
 
 ```bash
-# String arguments
+# String arguments (note kebab-case conversion)
 your-cli todos create --text "Buy groceries"
 
 # Boolean arguments
 your-cli todos toggle --id "some-id" --completed true
 
-# Convex ID arguments
-your-cli todos deleteTodo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
+# Convex ID arguments (camelCase becomes kebab-case)
+your-cli todos delete-todo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
+
+# Example of property name conversion:
+# Function with `firstName` parameter becomes `--first-name` option
+your-cli users create-user --first-name "John" --last-name "Doe"
 ```
 
 ### Function Discovery
