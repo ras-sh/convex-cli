@@ -9,6 +9,9 @@
       "performance": {
         "noBarrelFile": "off",
         "noNamespaceImport": "off"
+      },
+      "style": {
+        "useFilenamingConvention": "off"
       }
     }
   }

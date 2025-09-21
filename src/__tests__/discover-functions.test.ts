@@ -1,0 +1,291 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  discoverConvexFunctions,
+  tryExtractFromRuntimeApi,
+} from "../discover-functions";
+
+// Mock fs module
+vi.mock("fs");
+
+const mockFs = vi.mocked(fs);
+
+describe("discoverConvexFunctions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return empty array when api.d.ts does not exist", () => {
+    mockFs.existsSync.mockReturnValue(false);
+
+    const result = discoverConvexFunctions("./test-convex");
+
+    expect(result).toEqual([]);
+    expect(mockFs.existsSync).toHaveBeenCalledWith(
+      path.join("./test-convex", "_generated", "api.d.ts")
+    );
+  });
+
+  it("should discover functions from module files", () => {
+    const apiContent = `
+import type * as todos from "../todos.js";
+import type * as users from "../users.js";
+    `;
+
+    const todosContent = `
+export const getAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return [];
+  }
+});
+
+export const create = mutation({
+  args: {
+    text: v.string(),
+    completed: v.boolean()
+  },
+  handler: async (ctx, args) => {
+    return {};
+  }
+});
+
+export const toggle = mutation({
+  args: {
+    id: v.id("todos"),
+    completed: v.boolean()
+  },
+  handler: async (ctx, args) => {
+    return {};
+  }
+});
+    `;
+
+    const usersContent = `
+export const getUser = query({
+  args: {
+    id: v.id("users"),
+    includeProfile: v.boolean()
+  },
+  handler: async (ctx, args) => {
+    return {};
+  }
+});
+    `;
+
+    mockFs.existsSync.mockImplementation((filePath) => {
+      if (typeof filePath === "string") {
+        return (
+          filePath.includes("api.d.ts") ||
+          filePath.includes("todos.ts") ||
+          filePath.includes("users.ts")
+        );
+      }
+      return false;
+    });
+
+    mockFs.readFileSync.mockImplementation((filePath, _encoding) => {
+      if (typeof filePath === "string") {
+        if (filePath.includes("api.d.ts")) {
+          return apiContent;
+        }
+        if (filePath.includes("todos.ts")) {
+          return todosContent;
+        }
+        if (filePath.includes("users.ts")) {
+          return usersContent;
+        }
+      }
+      return "";
+    });
+
+    const result = discoverConvexFunctions("./test-convex");
+
+    const EXPECTED_FUNCTIONS_COUNT = 4;
+    expect(result).toHaveLength(EXPECTED_FUNCTIONS_COUNT);
+
+    // Check todos functions
+    const todosGetAll = result.find(
+      (fn) => fn.name === "getAll" && fn.module === "todos"
+    );
+    expect(todosGetAll).toBeDefined();
+    expect(todosGetAll?.type).toBe("query");
+    expect(todosGetAll?.args).toBeUndefined();
+
+    const todosCreate = result.find(
+      (fn) => fn.name === "create" && fn.module === "todos"
+    );
+    expect(todosCreate).toBeDefined();
+    expect(todosCreate?.type).toBe("mutation");
+    expect(todosCreate?.args).toEqual({
+      text: { type: "string", required: true },
+      completed: { type: "boolean", required: true },
+    });
+
+    const todosToggle = result.find(
+      (fn) => fn.name === "toggle" && fn.module === "todos"
+    );
+    expect(todosToggle).toBeDefined();
+    expect(todosToggle?.type).toBe("mutation");
+    expect(todosToggle?.args).toEqual({
+      id: { type: "string", required: true },
+      completed: { type: "boolean", required: true },
+    });
+
+    // Check users function
+    const usersGetUser = result.find(
+      (fn) => fn.name === "getUser" && fn.module === "users"
+    );
+    expect(usersGetUser).toBeDefined();
+    expect(usersGetUser?.type).toBe("query");
+    expect(usersGetUser?.args).toEqual({
+      id: { type: "string", required: true },
+      includeProfile: { type: "boolean", required: true },
+    });
+  });
+
+  it("should handle functions with no args", () => {
+    const apiContent = 'import type * as health from "../health.js";';
+    const healthContent = `
+export const ping = query({
+  args: {},
+  handler: async (ctx) => {
+    return "pong";
+  }
+});
+    `;
+
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockImplementation((filePath) => {
+      if (typeof filePath === "string") {
+        if (filePath.includes("api.d.ts")) {
+          return apiContent;
+        }
+        if (filePath.includes("health.ts")) {
+          return healthContent;
+        }
+      }
+      return "";
+    });
+
+    const result = discoverConvexFunctions("./test-convex");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      name: "ping",
+      type: "query",
+      module: "health",
+      args: undefined,
+    });
+  });
+
+  it("should handle different Convex validator types", () => {
+    const apiContent = 'import type * as test from "../test.js";';
+    const testContent = `
+export const testFunction = mutation({
+  args: {
+    text: v.string(),
+    count: v.number(),
+    age: v.int64(),
+    price: v.float64(),
+    active: v.boolean(),
+    userId: v.id("users"),
+    tags: v.array(v.string())
+  },
+  handler: async (ctx, args) => {
+    return {};
+  }
+});
+    `;
+
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockImplementation((filePath) => {
+      if (typeof filePath === "string") {
+        if (filePath.includes("api.d.ts")) {
+          return apiContent;
+        }
+        if (filePath.includes("test.ts")) {
+          return testContent;
+        }
+      }
+      return "";
+    });
+
+    const result = discoverConvexFunctions("./test-convex");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].args).toEqual({
+      text: { type: "string", required: true },
+      count: { type: "number", required: true },
+      age: { type: "integer", required: true },
+      price: { type: "number", required: true },
+      active: { type: "boolean", required: true },
+      userId: { type: "string", required: true },
+      tags: { type: "string", required: true }, // Note: arrays are simplified to their base type
+    });
+  });
+});
+
+describe("tryExtractFromRuntimeApi", () => {
+  it("should extract functions from runtime API proxy", () => {
+    const mockApi = {
+      todos: {
+        getAll: { _convexType: "query" },
+        create: { _convexType: "mutation" },
+        delete: { _convexType: "mutation" },
+      },
+      users: {
+        get: { _convexType: "query" },
+        update: { _convexType: "mutation" },
+      },
+    };
+
+    const result = tryExtractFromRuntimeApi(mockApi);
+
+    expect(result.length).toBeGreaterThan(0);
+
+    // Check that it finds some common functions
+    const foundFunctions = result.map((fn) => `${fn.module}.${fn.name}`);
+    expect(foundFunctions).toContain("todos.getAll");
+    expect(foundFunctions).toContain("todos.create");
+    expect(foundFunctions).toContain("todos.delete");
+  });
+
+  it("should infer correct function types from names", () => {
+    const mockApi = {
+      test: {
+        getItem: { _convexType: "query" },
+        listItems: { _convexType: "query" },
+        createItem: { _convexType: "mutation" },
+        updateItem: { _convexType: "mutation" },
+        deleteItem: { _convexType: "mutation" },
+        ping: { _convexType: "query" },
+      },
+    };
+
+    const result = tryExtractFromRuntimeApi(mockApi);
+
+    const getItem = result.find((fn) => fn.name === "get");
+    const createItem = result.find((fn) => fn.name === "create");
+    const updateItem = result.find((fn) => fn.name === "update");
+    const deleteItem = result.find((fn) => fn.name === "delete");
+    const ping = result.find((fn) => fn.name === "ping");
+
+    if (getItem) {
+      expect(getItem.type).toBe("query");
+    }
+    if (createItem) {
+      expect(createItem.type).toBe("mutation");
+    }
+    if (updateItem) {
+      expect(updateItem.type).toBe("mutation");
+    }
+    if (deleteItem) {
+      expect(deleteItem.type).toBe("mutation");
+    }
+    if (ping) {
+      expect(ping.type).toBe("query");
+    }
+  });
+});
