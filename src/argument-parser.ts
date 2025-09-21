@@ -1,28 +1,17 @@
 import type { JsonSchema } from "./types";
 
 /**
- * Build input object from positional arguments and options
+ * Build input object from options only (no positional arguments)
  */
-export function buildInputFromArgsAndOptions(
+export function buildInputFromOptions(
   schema: JsonSchema,
-  positionalValues: unknown[],
-  options: Record<string, unknown>,
-  actualPositionalArgs: string[]
+  options: Record<string, unknown>
 ): Record<string, unknown> {
   if (schema.type !== "object" || !schema.properties) {
     return options;
   }
 
   const input: Record<string, unknown> = {};
-
-  // Add positional arguments
-  for (
-    let i = 0;
-    i < actualPositionalArgs.length && i < positionalValues.length;
-    i++
-  ) {
-    input[actualPositionalArgs[i]] = positionalValues[i];
-  }
 
   // Add options with proper type conversion
   for (const [key, value] of Object.entries(options)) {

@@ -45,7 +45,7 @@ describe("CLI program generation", () => {
     expect(output).toContain("health-check");
   });
 
-  it("invokes a function with positional and option args", async () => {
+  it("invokes a function with option args only", async () => {
     const api = { todos: { create: {} } } as any;
     const cli = createCli({
       api,
@@ -63,7 +63,16 @@ describe("CLI program generation", () => {
     });
     const results: unknown[] = [];
     await cli.run({
-      argv: ["node", "cli", "todos", "create", "hello", "--completed", "true"],
+      argv: [
+        "node",
+        "cli",
+        "todos",
+        "create",
+        "--text",
+        "hello",
+        "--completed",
+        "true",
+      ],
       logger: {
         info: (s) => {
           results.push(s);

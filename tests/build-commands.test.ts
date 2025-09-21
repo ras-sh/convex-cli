@@ -142,7 +142,7 @@ describe("buildCliProgram", () => {
     expect(moduleCommand?.commands).toHaveLength(1);
   });
 
-  it("should create positional arguments for required string and number fields", () => {
+  it("should create options for all arguments (no positional arguments)", () => {
     const functions: ParsedFunction[] = [
       {
         path: "createUser",
@@ -165,17 +165,21 @@ describe("buildCliProgram", () => {
 
     const command = program.commands[0];
 
-    const EXPECTED_POSITIONAL_ARGS_COUNT = 3;
+    // No positional arguments - all args are options for stability
     const args = command.registeredArguments;
-    expect(args).toHaveLength(EXPECTED_POSITIONAL_ARGS_COUNT);
-    expect(args[0].name()).toBe("name");
-    expect(args[1].name()).toBe("age");
-    expect(args[2].name()).toBe("email");
+    expect(args).toHaveLength(0);
 
+    // All properties should be options
     const options = command.options;
-    const booleanOption = options.find((opt) => opt.long === "--is-active");
+    const nameOption = options.find((opt) => opt.long === "--name");
+    const ageOption = options.find((opt) => opt.long === "--age");
+    const emailOption = options.find((opt) => opt.long === "--email");
+    const isActiveOption = options.find((opt) => opt.long === "--is-active");
 
-    expect(booleanOption).toBeDefined();
+    expect(nameOption).toBeDefined();
+    expect(ageOption).toBeDefined();
+    expect(emailOption).toBeDefined();
+    expect(isActiveOption).toBeDefined();
   });
 
   it("should create options with correct types and requirements", () => {

@@ -1,11 +1,7 @@
 import { Command } from "commander";
-import { buildInputFromArgsAndOptions } from "./argument-parser";
+import { buildInputFromOptions } from "./argument-parser";
 import type { ConvexCaller } from "./convex-caller";
-import {
-  addOptionForProperty,
-  addPositionalArgument,
-  extractPositionalArgs,
-} from "./option-builder";
+import { addOptionForProperty } from "./option-builder";
 import type { ConvexCliRunParams, ParsedFunction } from "./types";
 import { kebabCase } from "./utils";
 
@@ -81,51 +77,24 @@ function addFunctionCommand(
   }
   command.description(`${fn.path} ${typeDescription}`);
 
-  // Add positional arguments for simple required fields (strings, numbers - but not booleans)
-  const actualPositionalArgs: string[] = [];
-
-  if (fn.jsonSchema.type === "object" && fn.jsonSchema.properties) {
-    const positionalArgs = extractPositionalArgs(fn.jsonSchema);
-
-    for (const argName of positionalArgs) {
-      const propSchema = fn.jsonSchema.properties?.[argName];
-      if (propSchema) {
-        addPositionalArgument(command, argName, propSchema);
-        actualPositionalArgs.push(argName);
-      }
-    }
-  }
-
-  // Add options for all properties that aren't positional arguments
+  // Add options for all properties (no positional arguments for stability)
   if (fn.jsonSchema.type === "object" && fn.jsonSchema.properties) {
     for (const [propName, propSchema] of Object.entries(
       fn.jsonSchema.properties
     )) {
       const isRequired = fn.jsonSchema.required?.includes(propName) ?? false;
-
-      // Skip if already added as positional argument
-      if (actualPositionalArgs.includes(propName)) {
-        continue;
-      }
-
       addOptionForProperty(command, propName, propSchema, isRequired);
     }
   }
 
   // Add action handler
-  command.action(async (...args) => {
+  command.action(async () => {
     try {
-      // Parse arguments and options
+      // Get options (no positional arguments)
       const options = command.opts();
-      const positionalValues = args.slice(0, -2); // Remove options and command from args
 
-      // Build the input object from individual arguments and options
-      const input = buildInputFromArgsAndOptions(
-        fn.jsonSchema,
-        positionalValues,
-        options,
-        actualPositionalArgs
-      );
+      // Build the input object from options only
+      const input = buildInputFromOptions(fn.jsonSchema, options);
 
       // Call the Convex function
       const result = await caller.callFunction(fn.path, fn.type, input);
