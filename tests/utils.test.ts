@@ -9,8 +9,8 @@ describe("kebabCase", () => {
   });
 
   it("should handle PascalCase", () => {
-    expect(kebabCase("PascalCase")).toBe("-pascal-case");
-    expect(kebabCase("MyComponent")).toBe("-my-component");
+    expect(kebabCase("PascalCase")).toBe("pascal-case");
+    expect(kebabCase("MyComponent")).toBe("my-component");
   });
 
   it("should handle already kebab-case strings", () => {
@@ -20,7 +20,7 @@ describe("kebabCase", () => {
 
   it("should handle single words", () => {
     expect(kebabCase("word")).toBe("word");
-    expect(kebabCase("Word")).toBe("-word");
+    expect(kebabCase("Word")).toBe("word");
   });
 
   it("should handle numbers and special characters", () => {

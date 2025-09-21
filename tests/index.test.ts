@@ -53,7 +53,7 @@ describe("createCli", () => {
 
     expect(cli).toHaveProperty("run");
     expect(cli).toHaveProperty("buildProgram");
-    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith();
+    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith("./convex");
   });
 
   it("should fallback to runtime API extraction when filesystem discovery fails", () => {
@@ -68,7 +68,7 @@ describe("createCli", () => {
     const cli = createCli({ api: mockApi, url: "http://localhost:3210" });
 
     expect(cli).toHaveProperty("run");
-    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith();
+    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith("./convex");
     expect(mockTryExtractFromRuntimeApi).toHaveBeenCalledWith(mockApi);
   });
 

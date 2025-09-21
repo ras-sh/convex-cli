@@ -25,11 +25,30 @@ export function parseConvexApi(api: ConvexApi): ParsedFunction[] {
         // This is a Convex function reference
         const functionPath = currentPath.join(".");
 
+        // Extract the actual function type from the reference object
+        let functionType: FunctionType = "mutation"; // Default to mutation for safety
+
+        if (
+          isObject(value) &&
+          "_type" in value &&
+          typeof value._type === "string"
+        ) {
+          const typeFromRef = value._type as string;
+          if (
+            typeFromRef === "query" ||
+            typeFromRef === "mutation" ||
+            typeFromRef === "action"
+          ) {
+            functionType = typeFromRef;
+          }
+        }
+        // No fallback to name-based inference
+
         // Since we don't have access to actual function definitions,
         // we'll create a generic JSON schema that accepts any object
         functions.push({
           path: functionPath,
-          type: inferFunctionType(functionPath, key),
+          type: functionType,
           args: undefined,
           jsonSchema: {
             type: "object",
@@ -65,33 +84,6 @@ function hasSubModules(obj: Record<string, unknown>): boolean {
   return Object.values(obj).some(
     (val) => isObject(val) && !Array.isArray(val) && Object.keys(val).length > 0
   );
-}
-
-function inferFunctionType(_path: string, name: string): FunctionType {
-  // Use naming conventions to infer function type
-  const lowerName = name.toLowerCase();
-
-  if (
-    lowerName.includes("get") ||
-    lowerName.includes("list") ||
-    lowerName.includes("find")
-  ) {
-    return "query";
-  }
-
-  if (
-    lowerName.includes("create") ||
-    lowerName.includes("update") ||
-    lowerName.includes("delete") ||
-    lowerName.includes("toggle") ||
-    lowerName.includes("add") ||
-    lowerName.includes("remove")
-  ) {
-    return "mutation";
-  }
-
-  // Default to mutation for safety (mutations are more restricted)
-  return "mutation";
 }
 
 export function groupFunctionsByModule(

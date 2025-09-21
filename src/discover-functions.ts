@@ -233,11 +233,24 @@ export function tryExtractFromRuntimeApi(api: any): FunctionDefinition[] {
             try {
               const func = moduleObj[functionName];
               if (func && typeof func === "object") {
-                // Infer function type from name
-                const type = inferFunctionType(functionName);
+                // Extract the actual function type from the reference object
+                let functionType: FunctionType = "mutation"; // Default to mutation for safety
+
+                if ("_type" in func && typeof func._type === "string") {
+                  const typeFromRef = func._type as string;
+                  if (
+                    typeFromRef === "query" ||
+                    typeFromRef === "mutation" ||
+                    typeFromRef === "action"
+                  ) {
+                    functionType = typeFromRef;
+                  }
+                }
+                // No fallback to name-based inference
+
                 functions.push({
                   name: functionName,
-                  type,
+                  type: functionType,
                   module: moduleName,
                 });
               }
@@ -255,30 +268,4 @@ export function tryExtractFromRuntimeApi(api: any): FunctionDefinition[] {
   }
 
   return functions;
-}
-
-function inferFunctionType(name: string): FunctionType {
-  const lowerName = name.toLowerCase();
-
-  if (
-    lowerName.includes("get") ||
-    lowerName.includes("list") ||
-    lowerName.includes("find") ||
-    lowerName.includes("ping")
-  ) {
-    return "query";
-  }
-
-  if (
-    lowerName.includes("create") ||
-    lowerName.includes("update") ||
-    lowerName.includes("delete") ||
-    lowerName.includes("toggle") ||
-    lowerName.includes("add") ||
-    lowerName.includes("remove")
-  ) {
-    return "mutation";
-  }
-
-  return "mutation"; // Default to mutation for safety
 }

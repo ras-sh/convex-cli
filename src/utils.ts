@@ -1,9 +1,8 @@
 export function kebabCase(str: string): string {
-  return str.replace(/([A-Z])/g, "-$1").toLowerCase();
-}
-
-export function camelToKebab(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1-$2") // Insert hyphen between lowercase and uppercase
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2") // Handle consecutive uppercase letters
+    .toLowerCase();
 }
 
 export function isObject(value: unknown): value is Record<string, unknown> {

@@ -2,54 +2,19 @@ import type { Command } from "commander";
 import { buildCliProgram } from "./build-commands";
 import { ConvexCaller } from "./convex-caller";
 import {
-  discoverConvexFunctions,
-  tryExtractFromRuntimeApi,
-} from "./discover-functions";
-import { parseConvexApi } from "./parse-api";
+  convertFunctionDefinitions,
+  discoverFunctions,
+} from "./function-discovery";
 import type {
-  ArgDefinition,
   ConvexCli,
   ConvexCliParams,
   ConvexCliRunParams,
-  JsonSchema,
   ParsedFunction,
 } from "./types";
 import { defaultLogger, formatError } from "./utils";
 
 export type { FunctionDefinition } from "./types";
 export * from "./types";
-
-function generateJsonSchemaFromArgs(
-  args?: Record<string, ArgDefinition>
-): JsonSchema {
-  if (!args) {
-    return {
-      type: "object",
-      properties: {},
-      additionalProperties: true,
-    };
-  }
-
-  const properties: Record<string, JsonSchema> = {};
-  const required: string[] = [];
-
-  for (const [argName, argDef] of Object.entries(args)) {
-    properties[argName] = {
-      type: argDef.type,
-      description: `${argName} (${argDef.type})`,
-    };
-
-    if (argDef.required) {
-      required.push(argName);
-    }
-  }
-
-  return {
-    type: "object",
-    properties,
-    required: required.length > 0 ? required : undefined,
-  };
-}
 
 /**
  * Create a CLI from a Convex API object.
@@ -58,83 +23,25 @@ function generateJsonSchemaFromArgs(
  * @returns A CLI object with a run method
  */
 export function createCli(params: ConvexCliParams): ConvexCli {
-  const {
-    api,
-    functions: providedFunctions,
-    url = process.env.CONVEX_URL ||
-      (process.env.CONVEX_DEPLOYMENT
-        ? `https://${process.env.CONVEX_DEPLOYMENT}.convex.cloud`
-        : "http://localhost:3210"),
-    name = "convex-cli",
-    version,
-    description = "CLI for Convex backend functions",
-  } = params;
-
-  // Use provided functions or try to discover them automatically
-  let functions: ParsedFunction[];
-
-  if (providedFunctions && providedFunctions.length > 0) {
-    // Convert provided function definitions to ParsedFunction format
-    functions = providedFunctions.map((fn) => ({
-      path: fn.module ? `${fn.module}.${fn.name}` : fn.name,
-      type: fn.type,
-      args: fn.args,
-      jsonSchema: generateJsonSchemaFromArgs(fn.args),
-    }));
-  } else {
-    // Try filesystem discovery first
-    const discoveredFunctions = discoverConvexFunctions();
-
-    if (discoveredFunctions.length > 0) {
-      functions = discoveredFunctions.map((fn) => ({
-        path: fn.module ? `${fn.module}.${fn.name}` : fn.name,
-        type: fn.type,
-        args: fn.args,
-        jsonSchema: generateJsonSchemaFromArgs(fn.args),
-      }));
-    } else {
-      // Fallback to runtime API extraction
-      const runtimeFunctions = tryExtractFromRuntimeApi(api);
-
-      if (runtimeFunctions.length > 0) {
-        functions = runtimeFunctions.map((fn) => ({
-          path: fn.module ? `${fn.module}.${fn.name}` : fn.name,
-          type: fn.type,
-          args: undefined,
-          jsonSchema: {
-            type: "object",
-            properties: {},
-            additionalProperties: true,
-          },
-        }));
-      } else {
-        // Final fallback to the original API parsing
-        functions = parseConvexApi(api);
-      }
-    }
-  }
-
-  if (functions.length === 0) {
-    throw new Error(
-      "No Convex functions found. Make sure you have exported functions in your convex/ directory and run `npx convex dev` to generate types."
-    );
-  }
+  const functions = loadFunctions(params);
 
   function buildProgram(runParams?: ConvexCliRunParams): Command {
-    const _logger = { ...defaultLogger, ...runParams?.logger };
+    const caller = new ConvexCaller(params.api, getUrl(params));
+    const program = buildCliProgram(
+      functions,
+      caller,
+      params.name || "convex-cli",
+      runParams
+    );
 
-    // Create Convex caller
-    const caller = new ConvexCaller(api, url);
-
-    // Build the command structure
-    const program = buildCliProgram(functions, caller, name, runParams);
-
-    if (version) {
-      program.version(version);
+    if (params.version) {
+      program.version(params.version);
     }
 
-    if (description) {
-      program.description(description);
+    if (params.description) {
+      program.description(
+        params.description || "CLI for Convex backend functions"
+      );
     }
 
     return program;
@@ -142,7 +49,7 @@ export function createCli(params: ConvexCliParams): ConvexCli {
 
   const run: ConvexCli["run"] = async (runParams?: ConvexCliRunParams) => {
     const logger = { ...defaultLogger, ...runParams?.logger };
-    const _process = runParams?.process || process;
+    const processInstance = runParams?.process || process;
     const argv = runParams?.argv || process.argv;
 
     try {
@@ -155,14 +62,7 @@ export function createCli(params: ConvexCliParams): ConvexCli {
 
       await program.parseAsync(argv);
     } catch (error) {
-      // Allow commander controlled exits (e.g. --help) to pass through with their exit code
-      const maybeCommander = error as { exitCode?: number } | undefined;
-      if (maybeCommander && typeof maybeCommander.exitCode === "number") {
-        _process.exit(maybeCommander.exitCode);
-        return;
-      }
-      logger.error?.(formatError(error));
-      _process.exit(1);
+      handleCliError(error, logger, processInstance);
     }
   };
 
@@ -170,6 +70,61 @@ export function createCli(params: ConvexCliParams): ConvexCli {
     run,
     buildProgram,
   };
+}
+
+/**
+ * Load functions from provided definitions or discover automatically
+ */
+function loadFunctions(params: ConvexCliParams): ParsedFunction[] {
+  const { api, functions: providedFunctions } = params;
+
+  let functions: ParsedFunction[];
+
+  if (providedFunctions && providedFunctions.length > 0) {
+    functions = convertFunctionDefinitions(providedFunctions);
+  } else {
+    functions = discoverFunctions(api);
+  }
+
+  if (functions.length === 0) {
+    throw new Error(
+      "No Convex functions found. Make sure you have exported functions in your convex/ directory and run `npx convex dev` to generate types."
+    );
+  }
+
+  return functions;
+}
+
+/**
+ * Get the Convex URL from params or environment
+ */
+function getUrl(params: ConvexCliParams): string {
+  return (
+    params.url ||
+    process.env.CONVEX_URL ||
+    (process.env.CONVEX_DEPLOYMENT
+      ? `https://${process.env.CONVEX_DEPLOYMENT}.convex.cloud`
+      : "http://localhost:3210")
+  );
+}
+
+/**
+ * Handle CLI errors with appropriate exit codes
+ */
+function handleCliError(
+  error: unknown,
+  logger: { error?: (message: unknown) => void },
+  processInstance: NodeJS.Process
+): void {
+  // Allow commander controlled exits (e.g. --help) to pass through with their exit code
+  const maybeCommander = error as { exitCode?: number } | undefined;
+  if (maybeCommander && typeof maybeCommander.exitCode === "number") {
+    processInstance.exit(maybeCommander.exitCode);
+    return;
+  }
+
+  logger.error?.(formatError(error));
+  processInstance.exit(1);
 }
 
 // Re-export for backward compatibility
