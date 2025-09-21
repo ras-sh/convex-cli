@@ -1,0 +1,17 @@
+{
+  "name": "todo-example",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "convex dev"
+  },
+  "dependencies": {
+    "@ras.sh/convex-cli": "file:../..",
+    "convex": "^1.27.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}
