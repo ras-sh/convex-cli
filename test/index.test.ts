@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCli } from "../src/index";
 import type { FunctionDefinition } from "../src/types";
 
-vi.mock("../src/discovery/filesystem");
+vi.mock("../src/discovery/ast-parser");
 vi.mock("../src/convex-client");
 
 import { ConvexCaller } from "../src/convex-client";
-import { discoverConvexFunctions } from "../src/discovery/filesystem";
+import { ConvexAstParser } from "../src/discovery/ast-parser";
 
-const mockDiscoverConvexFunctions = vi.mocked(discoverConvexFunctions);
+const mockConvexAstParser = vi.mocked(ConvexAstParser);
 const _mockConvexCaller = vi.mocked(ConvexCaller);
 
 describe("createCli", () => {
@@ -33,16 +33,24 @@ describe("createCli", () => {
     expect(cli).toHaveProperty("buildProgram");
     expect(typeof cli.run).toBe("function");
     expect(typeof cli.buildProgram).toBe("function");
-    expect(mockDiscoverConvexFunctions).not.toHaveBeenCalled();
+    expect(mockConvexAstParser).not.toHaveBeenCalled();
   });
 
-  it("should use filesystem discovery when no functions provided", () => {
+  it("should use AST discovery when no functions provided", () => {
     const mockApi = {};
     const discoveredFunctions: FunctionDefinition[] = [
       { name: "ping", type: "query", module: "health", args: {} },
     ];
 
-    mockDiscoverConvexFunctions.mockReturnValue(discoveredFunctions);
+    const mockDiscoverConvexFunctions = vi
+      .fn()
+      .mockReturnValue(discoveredFunctions);
+    mockConvexAstParser.mockImplementation(
+      () =>
+        ({
+          discoverConvexFunctions: mockDiscoverConvexFunctions,
+        }) as any
+    );
 
     const cli = createCli({ api: mockApi, url: "http://localhost:3210" });
 
@@ -53,7 +61,14 @@ describe("createCli", () => {
 
   it("should throw error when no functions are found", () => {
     const mockApi = {};
-    mockDiscoverConvexFunctions.mockReturnValue([]);
+    const mockDiscoverConvexFunctions = vi.fn().mockReturnValue([]);
+    mockConvexAstParser.mockImplementation(
+      () =>
+        ({
+          discoverConvexFunctions: mockDiscoverConvexFunctions,
+        }) as any
+    );
+
     expect(() => {
       createCli({ api: mockApi, url: "http://localhost:3210" });
     }).toThrow(

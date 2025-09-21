@@ -1,6 +1,6 @@
 import { generateJsonSchemaFromArgs } from "../schema-generator";
 import type { FunctionDefinition, ParsedFunction } from "../types";
-import { discoverConvexFunctions } from "./filesystem";
+import { ConvexAstParser } from "./ast-parser";
 
 /**
  * Options for function discovery
@@ -10,20 +10,14 @@ export type DiscoveryOptions = {
 };
 
 /**
- * Discover Convex functions from the filesystem
+ * Discover Convex functions using AST parsing
  */
 export function discoverFunctions(
   options: DiscoveryOptions = {}
 ): ParsedFunction[] {
   const { convexDir = "./convex" } = options;
-  return discoverFromFilesystem(convexDir);
-}
-
-/**
- * Discover functions from filesystem
- */
-function discoverFromFilesystem(convexDir: string): ParsedFunction[] {
-  const discoveredFunctions = discoverConvexFunctions(convexDir);
+  const parser = new ConvexAstParser();
+  const discoveredFunctions = parser.discoverConvexFunctions(convexDir);
 
   return discoveredFunctions.map((fn) => ({
     path: fn.module ? `${fn.module}.${fn.name}` : fn.name,

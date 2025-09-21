@@ -31,7 +31,8 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "commander": "^14.0.1"
+    "commander": "^14.0.1",
+    "ts-morph": "^27.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
@@ -41,7 +42,7 @@
     "lefthook": "^1.13.1",
     "tsdown": "^0.15.4",
     "typescript": "^5.9.2",
-    "ultracite": "5.3.10",
+    "ultracite": "5.4.4",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {

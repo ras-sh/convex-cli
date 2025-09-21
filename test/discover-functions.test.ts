@@ -1,14 +1,14 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { discoverConvexFunctions } from "../src/discovery/filesystem";
+import { ConvexAstParser } from "../src/discovery/ast-parser";
 
 // Mock fs module
-vi.mock("fs");
+vi.mock("node:fs");
 
 const mockFs = vi.mocked(fs);
 
-describe("discoverConvexFunctions", () => {
+describe("ConvexAstParser", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -16,7 +16,8 @@ describe("discoverConvexFunctions", () => {
   it("should return empty array when api.d.ts does not exist", () => {
     mockFs.existsSync.mockReturnValue(false);
 
-    const result = discoverConvexFunctions("./test-convex");
+    const parser = new ConvexAstParser();
+    const result = parser.discoverConvexFunctions("./test-convex");
 
     expect(result).toEqual([]);
     expect(mockFs.existsSync).toHaveBeenCalledWith(
@@ -97,17 +98,18 @@ export const getUser = query({
       return "";
     });
 
-    const result = discoverConvexFunctions("./test-convex");
+    const parser = new ConvexAstParser();
+    const result = parser.discoverConvexFunctions("./test-convex");
 
-    const EXPECTED_FUNCTIONS_COUNT = 4;
-    expect(result).toHaveLength(EXPECTED_FUNCTIONS_COUNT);
+    const expectedFunctionsCount = 4;
+    expect(result).toHaveLength(expectedFunctionsCount);
 
     const todosGetAll = result.find(
       (fn) => fn.name === "getAll" && fn.module === "todos"
     );
     expect(todosGetAll).toBeDefined();
     expect(todosGetAll?.type).toBe("query");
-    expect(todosGetAll?.args).toBeUndefined();
+    expect(todosGetAll?.args).toEqual({});
 
     const todosCreate = result.find(
       (fn) => fn.name === "create" && fn.module === "todos"
@@ -164,14 +166,15 @@ export const ping = query({
       return "";
     });
 
-    const result = discoverConvexFunctions("./test-convex");
+    const parser = new ConvexAstParser();
+    const result = parser.discoverConvexFunctions("./test-convex");
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       name: "ping",
       type: "query",
       module: "health",
-      args: undefined,
+      args: {},
     });
   });
 
@@ -207,7 +210,8 @@ export const testFunction = mutation({
       return "";
     });
 
-    const result = discoverConvexFunctions("./test-convex");
+    const parser = new ConvexAstParser();
+    const result = parser.discoverConvexFunctions("./test-convex");
 
     expect(result).toHaveLength(1);
     expect(result[0].args).toEqual({
@@ -217,7 +221,7 @@ export const testFunction = mutation({
       price: { type: "number", required: true },
       active: { type: "boolean", required: true },
       userId: { type: "string", required: true },
-      tags: { type: "string", required: true },
+      tags: { type: "array", required: true },
     });
   });
 });
