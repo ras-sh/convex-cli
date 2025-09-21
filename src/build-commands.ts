@@ -27,11 +27,6 @@ export function buildCliProgram(
     modules[moduleName].push(fn);
   }
 
-  // Configure program exit behavior
-  program.exitOverride((err) => {
-    _process.exit(err.exitCode);
-  });
-
   program.configureOutput({
     writeOut: (str) => logger.info?.(str),
     writeErr: (str) => logger.error?.(str),

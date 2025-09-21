@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   discoverConvexFunctions,
   tryExtractFromRuntimeApi,
-} from "../discover-functions";
+} from "../src/discover-functions";
 
 // Mock fs module
 vi.mock("fs");
@@ -105,7 +105,6 @@ export const getUser = query({
     const EXPECTED_FUNCTIONS_COUNT = 4;
     expect(result).toHaveLength(EXPECTED_FUNCTIONS_COUNT);
 
-    // Check todos functions
     const todosGetAll = result.find(
       (fn) => fn.name === "getAll" && fn.module === "todos"
     );
@@ -133,7 +132,6 @@ export const getUser = query({
       completed: { type: "boolean", required: true },
     });
 
-    // Check users function
     const usersGetUser = result.find(
       (fn) => fn.name === "getUser" && fn.module === "users"
     );
@@ -222,7 +220,7 @@ export const testFunction = mutation({
       price: { type: "number", required: true },
       active: { type: "boolean", required: true },
       userId: { type: "string", required: true },
-      tags: { type: "string", required: true }, // Note: arrays are simplified to their base type
+      tags: { type: "string", required: true },
     });
   });
 });
@@ -245,7 +243,6 @@ describe("tryExtractFromRuntimeApi", () => {
 
     expect(result.length).toBeGreaterThan(0);
 
-    // Check that it finds some common functions
     const foundFunctions = result.map((fn) => `${fn.module}.${fn.name}`);
     expect(foundFunctions).toContain("todos.getAll");
     expect(foundFunctions).toContain("todos.create");

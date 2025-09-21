@@ -5,10 +5,15 @@ import type {
   FunctionType as ConvexFunctionType,
 } from "convex/server";
 
-// Re-export official Convex types for backwards compatibility
-// biome-ignore lint/suspicious/noExplicitAny: CLI needs to work with any Convex API
-export type FunctionReference = ConvexFunctionReference<any, any>;
-export type ConvexApi = AnyApi;
+// Re-export official Convex types for backwards compatibility without unsafe `any`.
+export type FunctionReference = ConvexFunctionReference<
+  ConvexFunctionType,
+  "public" | "internal",
+  Record<string, unknown>,
+  unknown
+>;
+// Accept any Convex API-like object. Generated `api` types are structurally compatible.
+export type ConvexApi = AnyApi | Record<string, unknown>;
 export type FunctionType = ConvexFunctionType;
 
 // CLI configuration

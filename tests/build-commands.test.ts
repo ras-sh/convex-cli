@@ -1,11 +1,11 @@
 import { Command } from "commander";
 import { describe, expect, it, vi } from "vitest";
-import { buildCliProgram } from "../build-commands";
-import type { ConvexCaller } from "../convex-caller";
-import type { ParsedFunction } from "../types";
+import { buildCliProgram } from "../src/build-commands";
+import type { ConvexCaller } from "../src/convex-caller";
+import type { ParsedFunction } from "../src/types";
 
 // Mock ConvexCaller
-vi.mock("../convex-caller");
+vi.mock("../src/convex-caller");
 
 const mockCaller = {
   callFunction: vi.fn(),
@@ -42,7 +42,6 @@ describe("buildCliProgram", () => {
     expect(program.name()).toBe("test-cli");
     expect(program.description()).toBe("CLI for Convex backend functions");
 
-    // Check that commands were added
     const commands = program.commands;
     expect(commands).toHaveLength(2);
     expect(commands[0].name()).toBe("ping");
@@ -89,7 +88,6 @@ describe("buildCliProgram", () => {
 
     const program = buildCliProgram(functions, mockCaller, "test-cli");
 
-    // Should have 2 subcommands (todos and users)
     const commands = program.commands;
     expect(commands).toHaveLength(2);
 
@@ -99,12 +97,10 @@ describe("buildCliProgram", () => {
     expect(todosCommand).toBeDefined();
     expect(usersCommand).toBeDefined();
 
-    // Check todos subcommands
     expect(todosCommand?.commands).toHaveLength(2);
     expect(todosCommand?.commands[0].name()).toBe("get-all");
     expect(todosCommand?.commands[1].name()).toBe("create");
 
-    // Check users subcommands
     expect(usersCommand?.commands).toHaveLength(1);
     expect(usersCommand?.commands[0].name()).toBe("get-user");
   });
@@ -138,7 +134,6 @@ describe("buildCliProgram", () => {
     const commands = program.commands;
     expect(commands).toHaveLength(2);
 
-    // One root command and one module subcommand
     const rootCommand = commands.find((cmd) => cmd.name() === "ping");
     const moduleCommand = commands.find((cmd) => cmd.name() === "todos");
 
@@ -170,7 +165,6 @@ describe("buildCliProgram", () => {
 
     const command = program.commands[0];
 
-    // Should have 3 positional arguments (name, age, email) - booleans are not positional
     const EXPECTED_POSITIONAL_ARGS_COUNT = 3;
     const args = command.registeredArguments;
     expect(args).toHaveLength(EXPECTED_POSITIONAL_ARGS_COUNT);
@@ -178,7 +172,6 @@ describe("buildCliProgram", () => {
     expect(args[1].name()).toBe("age");
     expect(args[2].name()).toBe("email");
 
-    // Should have options for boolean field
     const options = command.options;
     const booleanOption = options.find((opt) => opt.long === "--is-active");
 
@@ -226,27 +219,21 @@ describe("buildCliProgram", () => {
     const command = program.commands[0];
     const options = command.options;
 
-    // Check required boolean option
     const booleanOption = options.find(
       (opt) => opt.long === "--required-boolean"
     );
     expect(booleanOption).toBeDefined();
     expect(booleanOption?.mandatory).toBe(true);
-    // Note: choices validation is handled internally by Commander.js
 
-    // Check optional number option
     const numberOption = options.find(
       (opt) => opt.long === "--optional-number"
     );
     expect(numberOption).toBeDefined();
     expect(numberOption?.mandatory).toBe(false);
 
-    // Check enum option
     const enumOption = options.find((opt) => opt.long === "--enum-field");
     expect(enumOption).toBeDefined();
-    // Note: choices validation is handled internally by Commander.js
 
-    // Check option with default
     const defaultOption = options.find(
       (opt) => opt.long === "--field-with-default"
     );

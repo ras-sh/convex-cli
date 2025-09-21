@@ -61,7 +61,10 @@ export function createCli(params: ConvexCliParams): ConvexCli {
   const {
     api,
     functions: providedFunctions,
-    url = process.env.CONVEX_URL || "http://localhost:3210",
+    url = process.env.CONVEX_URL ||
+      (process.env.CONVEX_DEPLOYMENT
+        ? `https://${process.env.CONVEX_DEPLOYMENT}.convex.cloud`
+        : "http://localhost:3210"),
     name = "convex-cli",
     version,
     description = "CLI for Convex backend functions",
@@ -75,12 +78,8 @@ export function createCli(params: ConvexCliParams): ConvexCli {
     functions = providedFunctions.map((fn) => ({
       path: fn.module ? `${fn.module}.${fn.name}` : fn.name,
       type: fn.type,
-      args: undefined,
-      jsonSchema: {
-        type: "object",
-        properties: {},
-        additionalProperties: true,
-      },
+      args: fn.args,
+      jsonSchema: generateJsonSchemaFromArgs(fn.args),
     }));
   } else {
     // Try filesystem discovery first
@@ -149,11 +148,6 @@ export function createCli(params: ConvexCliParams): ConvexCli {
     try {
       const program = buildProgram(runParams);
 
-      // Configure global error handling
-      program.exitOverride((err) => {
-        _process.exit(err.exitCode);
-      });
-
       program.configureOutput({
         writeOut: (str) => logger.info?.(str),
         writeErr: (str) => logger.error?.(str),
@@ -161,6 +155,12 @@ export function createCli(params: ConvexCliParams): ConvexCli {
 
       await program.parseAsync(argv);
     } catch (error) {
+      // Allow commander controlled exits (e.g. --help) to pass through with their exit code
+      const maybeCommander = error as { exitCode?: number } | undefined;
+      if (maybeCommander && typeof maybeCommander.exitCode === "number") {
+        _process.exit(maybeCommander.exitCode);
+        return;
+      }
       logger.error?.(formatError(error));
       _process.exit(1);
     }
