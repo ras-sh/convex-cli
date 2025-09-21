@@ -3,21 +3,12 @@ import type { FunctionDefinition, ParsedFunction } from "../types";
 import { ConvexAstParser } from "./ast-parser";
 
 /**
- * Options for Convex function discovery
- */
-type DiscoveryOptions = {
-  /** Path to the Convex directory (default: "./convex") */
-  convexDir?: string;
-};
-
-/**
  * Discover Convex functions by parsing TypeScript source files
  * Uses AST analysis to extract function definitions, types, and arguments
  */
-function discoverFunctions(options: DiscoveryOptions = {}): ParsedFunction[] {
-  const { convexDir = "./convex" } = options;
+function discoverFunctions(): ParsedFunction[] {
   const parser = new ConvexAstParser();
-  const discoveredFunctions = parser.discoverConvexFunctions(convexDir);
+  const discoveredFunctions = parser.discoverConvexFunctions();
 
   return discoveredFunctions.map((fn) => ({
     path: fn.module ? `${fn.module}.${fn.name}` : fn.name,

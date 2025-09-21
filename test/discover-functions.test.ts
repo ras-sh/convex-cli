@@ -17,11 +17,11 @@ describe("ConvexAstParser", () => {
     mockFs.existsSync.mockReturnValue(false);
 
     const parser = new ConvexAstParser();
-    const result = parser.discoverConvexFunctions("./test-convex");
+    const result = parser.discoverConvexFunctions();
 
     expect(result).toEqual([]);
     expect(mockFs.existsSync).toHaveBeenCalledWith(
-      path.join("./test-convex", "_generated", "api.d.ts")
+      path.join("./convex", "_generated", "api.d.ts")
     );
   });
 
@@ -99,7 +99,7 @@ export const getUser = query({
     });
 
     const parser = new ConvexAstParser();
-    const result = parser.discoverConvexFunctions("./test-convex");
+    const result = parser.discoverConvexFunctions();
 
     const expectedFunctionsCount = 4;
     expect(result).toHaveLength(expectedFunctionsCount);
@@ -167,7 +167,7 @@ export const ping = query({
     });
 
     const parser = new ConvexAstParser();
-    const result = parser.discoverConvexFunctions("./test-convex");
+    const result = parser.discoverConvexFunctions();
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
@@ -211,7 +211,7 @@ export const testFunction = mutation({
     });
 
     const parser = new ConvexAstParser();
-    const result = parser.discoverConvexFunctions("./test-convex");
+    const result = parser.discoverConvexFunctions();
 
     expect(result).toHaveLength(1);
     expect(result[0].args).toEqual({

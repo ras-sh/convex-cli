@@ -56,7 +56,7 @@ describe("createCli", () => {
 
     expect(cli).toHaveProperty("run");
     expect(cli).toHaveProperty("buildProgram");
-    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith("./convex");
+    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith();
   });
 
   it("should throw error when no functions are found", () => {
