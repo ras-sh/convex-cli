@@ -76,14 +76,14 @@ export function createCli(params: ConvexCliParams): ConvexCli {
  * Load functions from provided definitions or discover automatically
  */
 function loadFunctions(params: ConvexCliParams): ParsedFunction[] {
-  const { api, functions: providedFunctions } = params;
+  const { functions: providedFunctions } = params;
 
   let functions: ParsedFunction[];
 
   if (providedFunctions && providedFunctions.length > 0) {
     functions = convertFunctionDefinitions(providedFunctions);
   } else {
-    functions = discoverFunctions(api);
+    functions = discoverFunctions();
   }
 
   if (functions.length === 0) {

@@ -33,28 +33,23 @@ export CONVEX_URL="http://localhost:3210"
 2. **Create your CLI:**
 ```typescript
 import { createCli } from "@ras-sh/convex-cli";
-import { api } from "../convex/_generated/api";
+import { api } from "../convex/_generated/api.js";
 
-const cli = createCli({
-  api,
-  url: process.env.CONVEX_URL,
-});
-
-cli.run().catch(console.error);
+createCli({ api }).run({ logger: console });
 ```
 
 3. **Run your Convex functions:**
 ```bash
 # Query examples
 npm run cli todos getAll
-npm run cli todos get --id "some-id"
+npm run cli healthCheck get
 
 # Mutation examples
-npm run cli todos create --text "Buy milk" --completed "false"
-npm run cli todos update --id "some-id" --text "Buy almond milk"
+npm run cli todos create --text "Buy milk"
+npm run cli todos toggle --id "j57d6h3k66q0q0q0q0q0q0q0q0q0" --completed true
 
-# Action examples
-npm run cli healthCheck ping
+# With module functions
+npm run cli todos deleteTodo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
 ```
 
 ## Usage
@@ -71,32 +66,24 @@ your-cli <function-name> [args...]
 your-cli <module> <function-name> [args...]
 ```
 
-### Argument Types
+### Argument Handling
 
-For stability and consistency, the CLI always uses options for all arguments. This ensures that CLI usage remains stable even when function signatures change.
+All function arguments are passed as command-line options using `--` prefix:
 
-**All arguments are passed as options**:
 ```bash
-your-cli createUser --email "john@example.com" --age 25 --name "John Doe" --active true
-```
+# String arguments
+your-cli todos create --text "Buy groceries"
 
-**Arrays**:
-```bash
-your-cli updateTags --userId "123" --tags "admin" --tags "moderator"
-```
+# Boolean arguments
+your-cli todos toggle --id "some-id" --completed true
 
-**Booleans** (passed as strings):
-```bash
-your-cli updateUser --userId "123" --active "true"
+# Convex ID arguments
+your-cli todos deleteTodo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
 ```
 
 ### Function Discovery
 
-The CLI uses multiple strategies to discover your Convex functions:
-
-1. **Filesystem Discovery** (recommended): Parses your Convex source files for function definitions
-2. **Runtime API**: Extracts functions from the runtime API object
-3. **API Parsing**: Parses the generated Convex API structure
+The CLI uses filesystem discovery to automatically find your Convex functions by parsing your Convex source files and the generated `_generated/api.d.ts` file. This approach provides complete type information and argument validation schemas.
 
 ## Configuration
 
@@ -108,14 +95,18 @@ The CLI uses multiple strategies to discover your Convex functions:
 ### Programmatic Configuration
 
 ```typescript
+import { createCli } from "@ras-sh/convex-cli";
+import { api } from "../convex/_generated/api.js";
+
 const cli = createCli({
-  api,                    // Your Convex API object
-  functions: [...],       // Optional: Explicit function definitions
+  api,                    // Your Convex API object (required)
   url: "...",            // Optional: Override default URL logic
   name: "my-cli",        // Optional: CLI program name
   version: "1.0.0",      // Optional: CLI version
   description: "...",    // Optional: CLI description
 });
+
+cli.run({ logger: console });
 ```
 
 ## Advanced Usage
@@ -125,6 +116,9 @@ const cli = createCli({
 If you need more control, you can provide explicit function definitions:
 
 ```typescript
+import { createCli } from "@ras-sh/convex-cli";
+import { api } from "../convex/_generated/api.js";
+
 const cli = createCli({
   api,
   functions: [
@@ -142,14 +136,13 @@ const cli = createCli({
 });
 ```
 
-### Custom Discovery Strategy
+### Custom Convex Directory
 
 ```typescript
-import { createCli } from "@ras-sh/convex-cli";
-import { discoverFunctions, DiscoveryStrategy } from "@ras-sh/convex-cli";
+import { createCli, discoverFunctions } from "@ras-sh/convex-cli";
+import { api } from "../convex/_generated/api.js";
 
-const functions = discoverFunctions(api, {
-  strategy: DiscoveryStrategy.FILESYSTEM,
+const functions = discoverFunctions({
   convexDir: "./custom-convex-dir",
 });
 
@@ -163,7 +156,7 @@ const cli = createCli({ api, functions });
 Creates a CLI instance.
 
 **Parameters:**
-- `api`: Your Convex API object
+- `api`: Your Convex API object (required)
 - `functions?`: Optional array of function definitions
 - `url?`: Convex URL override
 - `name?`: CLI program name (default: "convex-cli")
@@ -172,21 +165,12 @@ Creates a CLI instance.
 
 **Returns:** CLI object with `run()` and `buildProgram()` methods
 
-### `discoverFunctions(api, options?)`
+### `discoverFunctions(options?)`
 
 Manually discover functions with custom options.
 
 **Parameters:**
-- `api`: Convex API object
-- `options.strategy?`: Discovery strategy
-- `options.convexDir?`: Custom convex directory path
-
-### Discovery Strategies
-
-- `DiscoveryStrategy.AUTO`: Try all strategies in order
-- `DiscoveryStrategy.FILESYSTEM`: Parse source files only
-- `DiscoveryStrategy.RUNTIME_API`: Runtime API extraction only
-- `DiscoveryStrategy.API_PARSE`: API parsing only
+- `options.convexDir?`: Custom convex directory path (default: "./convex")
 
 ## Development
 
@@ -220,9 +204,6 @@ pnpm run fix
 
 # Build the project
 pnpm run build
-
-# Watch mode
-pnpm run dev
 ```
 
 ### Project Structure
@@ -230,17 +211,16 @@ pnpm run dev
 ```
 src/
 ├── index.ts              # Main entry point
-├── function-discovery.ts # Function discovery logic
-├── command-builder.ts    # CLI command construction
-├── option-builder.ts     # Option and argument handling
-├── argument-parser.ts    # Input parsing logic
-├── schema-utils.ts       # JSON schema utilities
-├── convex-caller.ts      # Convex API caller
-├── parse-api.ts          # API parsing
-├── parse-validators.ts   # Validator parsing
-├── discover-functions.ts # Filesystem discovery
 ├── types.ts              # TypeScript definitions
-└── utils.ts              # Utility functions
+├── convex-client.ts      # Convex API caller
+├── schema-generator.ts   # JSON schema utilities
+├── utils.ts              # Utility functions
+├── cli/
+│   ├── commands.ts       # CLI command construction
+│   └── options.ts        # Option and argument handling
+└── discovery/
+    ├── index.ts          # Function discovery coordination
+    └── filesystem.ts     # Filesystem-based discovery
 ```
 
 ## Examples

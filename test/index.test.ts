@@ -6,13 +6,9 @@ vi.mock("../src/discovery/filesystem");
 vi.mock("../src/convex-client");
 
 import { ConvexCaller } from "../src/convex-client";
-import {
-  discoverConvexFunctions,
-  tryExtractFromRuntimeApi,
-} from "../src/discovery/filesystem";
+import { discoverConvexFunctions } from "../src/discovery/filesystem";
 
 const mockDiscoverConvexFunctions = vi.mocked(discoverConvexFunctions);
-const mockTryExtractFromRuntimeApi = vi.mocked(tryExtractFromRuntimeApi);
 const _mockConvexCaller = vi.mocked(ConvexCaller);
 
 describe("createCli", () => {
@@ -38,7 +34,6 @@ describe("createCli", () => {
     expect(typeof cli.run).toBe("function");
     expect(typeof cli.buildProgram).toBe("function");
     expect(mockDiscoverConvexFunctions).not.toHaveBeenCalled();
-    expect(mockTryExtractFromRuntimeApi).not.toHaveBeenCalled();
   });
 
   it("should use filesystem discovery when no functions provided", () => {
@@ -56,26 +51,9 @@ describe("createCli", () => {
     expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith("./convex");
   });
 
-  it("should fallback to runtime API extraction when filesystem discovery fails", () => {
-    const mockApi = {};
-    const runtimeFunctions: FunctionDefinition[] = [
-      { name: "getAll", type: "query", module: "todos" },
-    ];
-
-    mockDiscoverConvexFunctions.mockReturnValue([]);
-    mockTryExtractFromRuntimeApi.mockReturnValue(runtimeFunctions);
-
-    const cli = createCli({ api: mockApi, url: "http://localhost:3210" });
-
-    expect(cli).toHaveProperty("run");
-    expect(mockDiscoverConvexFunctions).toHaveBeenCalledWith("./convex");
-    expect(mockTryExtractFromRuntimeApi).toHaveBeenCalledWith(mockApi);
-  });
-
   it("should throw error when no functions are found", () => {
     const mockApi = {};
     mockDiscoverConvexFunctions.mockReturnValue([]);
-    mockTryExtractFromRuntimeApi.mockReturnValue([]);
     expect(() => {
       createCli({ api: mockApi, url: "http://localhost:3210" });
     }).toThrow(

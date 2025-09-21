@@ -1,10 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  discoverConvexFunctions,
-  tryExtractFromRuntimeApi,
-} from "../src/discovery/filesystem";
+import { discoverConvexFunctions } from "../src/discovery/filesystem";
 
 // Mock fs module
 vi.mock("fs");
@@ -222,67 +219,5 @@ export const testFunction = mutation({
       userId: { type: "string", required: true },
       tags: { type: "string", required: true },
     });
-  });
-});
-
-describe("tryExtractFromRuntimeApi", () => {
-  it("should extract functions from runtime API proxy", () => {
-    const mockApi = {
-      todos: {
-        getAll: { _convexType: "query" },
-        create: { _convexType: "mutation" },
-        delete: { _convexType: "mutation" },
-      },
-      users: {
-        get: { _convexType: "query" },
-        update: { _convexType: "mutation" },
-      },
-    };
-
-    const result = tryExtractFromRuntimeApi(mockApi);
-
-    expect(result.length).toBeGreaterThan(0);
-
-    const foundFunctions = result.map((fn) => `${fn.module}.${fn.name}`);
-    expect(foundFunctions).toContain("todos.getAll");
-    expect(foundFunctions).toContain("todos.create");
-    expect(foundFunctions).toContain("todos.delete");
-  });
-
-  it("should infer correct function types from names", () => {
-    const mockApi = {
-      test: {
-        getItem: { _convexType: "query" },
-        listItems: { _convexType: "query" },
-        createItem: { _convexType: "mutation" },
-        updateItem: { _convexType: "mutation" },
-        deleteItem: { _convexType: "mutation" },
-        ping: { _convexType: "query" },
-      },
-    };
-
-    const result = tryExtractFromRuntimeApi(mockApi);
-
-    const getItem = result.find((fn) => fn.name === "get");
-    const createItem = result.find((fn) => fn.name === "create");
-    const updateItem = result.find((fn) => fn.name === "update");
-    const deleteItem = result.find((fn) => fn.name === "delete");
-    const ping = result.find((fn) => fn.name === "ping");
-
-    if (getItem) {
-      expect(getItem.type).toBe("query");
-    }
-    if (createItem) {
-      expect(createItem.type).toBe("mutation");
-    }
-    if (updateItem) {
-      expect(updateItem.type).toBe("mutation");
-    }
-    if (deleteItem) {
-      expect(deleteItem.type).toBe("mutation");
-    }
-    if (ping) {
-      expect(ping.type).toBe("query");
-    }
   });
 });
