@@ -2,6 +2,8 @@
 
 A type-safe command-line interface for calling Convex backend functions. Execute your Convex queries, mutations, and actions directly from the terminal with automatic argument parsing and validation.
 
+> **Note**: This is an independent project and is not officially affiliated with Convex or the Convex team.
+
 ## Features
 
 - 🚀 **Type-Safe**: Leverages your Convex generated types for automatic argument validation
@@ -18,7 +20,7 @@ npm install @ras-sh/convex-cli
 # or
 pnpm add @ras-sh/convex-cli
 # or
-yarn add @ras-sh/convex-cli
+bun add @ras-sh/convex-cli
 ```
 
 ## Quick Start
@@ -207,81 +209,9 @@ The AST parser recognizes and handles:
 - **Literals**: `v.literal("value")`
 - **Unions**: `v.union(v.string(), v.number())`
 
-## Development
-
-### Prerequisites
-
-- Node.js 20+
-- pnpm (recommended) or npm/yarn
-
-### Setup
-
-```bash
-git clone <repository-url>
-cd convex-cli
-pnpm install
-```
-
-### Testing
-
-```bash
-# Run tests
-pnpm test
-
-# Run tests with coverage
-pnpm run coverage
-
-# Run linting
-pnpm run check
-
-# Fix linting issues
-pnpm run fix
-
-# Build the project
-pnpm run build
-```
-
-### Project Structure
-
-```
-src/
-├── index.ts              # Main entry point
-├── types.ts              # TypeScript definitions
-├── convex-client.ts      # Convex API caller
-├── schema-generator.ts   # JSON schema utilities
-├── utils.ts              # Utility functions
-├── cli/
-│   ├── commands.ts       # CLI command construction
-│   └── options.ts        # Option and argument handling
-└── discovery/
-    ├── index.ts          # Function discovery coordination
-    └── ast-parser.ts     # TypeScript AST-based discovery
-```
-
-## Examples
-
-See the `examples/` directory for complete working examples:
-
-- `examples/todo/`: Full-featured todo application with CLI
-
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass: `pnpm test`
-6. Run linting: `pnpm run check`
-7. Submit a pull request
-
-### Code Quality
-
-This project uses:
-- **Biome**: Fast formatter and linter
-- **Vitest**: Modern testing framework
-- **TypeScript**: Strict type checking
-- **ts-morph**: TypeScript AST manipulation
-- **Ultracite**: Zero-config code quality
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and contribution guidelines.
 
 ## License
 
