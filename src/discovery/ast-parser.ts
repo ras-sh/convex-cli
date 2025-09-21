@@ -2,17 +2,20 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import {
   type CallExpression,
+  type Expression,
+  Node,
   type ObjectLiteralExpression,
   Project,
+  type PropertyAccessExpression,
   type PropertyAssignment,
   SyntaxKind,
   type VariableDeclaration,
 } from "ts-morph";
 import type { ArgDefinition, FunctionDefinition, FunctionType } from "../types";
 
-// Regex patterns defined at top level for performance
-const MODULE_IMPORT_REGEX = /import type \* as (\w+) from "\.\.\/(.+?)\.js";/g;
-const OPTIONAL_VALIDATOR_REGEX = /v\.optional\((.+)\)/;
+// Constants for magic numbers
+const RELATIVE_PREFIX_LENGTH = 3; // "../"
+const JS_SUFFIX_LENGTH = 3; // ".js"
 
 /**
  * TypeScript AST-based parser for Convex functions using ts-morph
@@ -37,12 +40,12 @@ export class ConvexAstParser {
   /**
    * Discover Convex functions by parsing TypeScript source files
    */
-  discoverConvexFunctions(convexDir = "./convex"): FunctionDefinition[] {
+  discoverConvexFunctions(): FunctionDefinition[] {
     const functions: FunctionDefinition[] = [];
 
     try {
       // Read the generated API file to get module imports
-      const apiPath = path.join(convexDir, "_generated", "api.d.ts");
+      const apiPath = path.join("./convex", "_generated", "api.d.ts");
 
       if (!fs.existsSync(apiPath)) {
         return [];
@@ -53,7 +56,7 @@ export class ConvexAstParser {
 
       // Process each module file using AST parsing
       for (const module of modules) {
-        const modulePath = path.join(convexDir, `${module.file}.ts`);
+        const modulePath = path.join("./convex", `${module.file}.ts`);
 
         if (!fs.existsSync(modulePath)) {
           continue;
@@ -75,27 +78,57 @@ export class ConvexAstParser {
   }
 
   /**
-   * Extract module information from generated API file
-   * Uses regex for reliable parsing of predictable generated code structure
+   * Extract module information from generated API file using AST parsing
    */
   private extractModulesFromApi(
     apiContent: string
   ): Array<{ name: string; file: string }> {
     const modules: Array<{ name: string; file: string }> = [];
 
-    // Reset regex state for clean matching across multiple calls
-    MODULE_IMPORT_REGEX.lastIndex = 0;
-
-    let match: RegExpExecArray | null = MODULE_IMPORT_REGEX.exec(apiContent);
-    while (match !== null) {
-      modules.push({
-        name: match[1],
-        file: match[2],
+    try {
+      // Parse the API file as TypeScript
+      const sourceFile = this.project.createSourceFile("api.d.ts", apiContent, {
+        overwrite: true,
       });
-      match = MODULE_IMPORT_REGEX.exec(apiContent);
-    }
 
-    return modules;
+      // Find all import declarations
+      const importDeclarations = sourceFile.getImportDeclarations();
+
+      for (const importDecl of importDeclarations) {
+        const moduleSpecifier = importDecl.getModuleSpecifierValue();
+
+        // Check if it's a relative import starting with "../" and ending with ".js"
+        if (
+          !(
+            moduleSpecifier.startsWith("../") && moduleSpecifier.endsWith(".js")
+          )
+        ) {
+          continue;
+        }
+
+        // Get the namespace import (import type * as moduleName)
+        const namespaceImport = importDecl.getNamespaceImport();
+        if (!namespaceImport) {
+          continue;
+        }
+
+        const moduleName = namespaceImport.getText();
+        // Remove "../" prefix and ".js" suffix to get the file path
+        const filePath = moduleSpecifier.slice(
+          RELATIVE_PREFIX_LENGTH,
+          -JS_SUFFIX_LENGTH
+        );
+
+        modules.push({
+          name: moduleName,
+          file: filePath,
+        });
+      }
+
+      return modules;
+    } catch (_error) {
+      return [];
+    }
   }
 
   /**
@@ -254,7 +287,7 @@ export class ConvexAstParser {
         continue;
       }
 
-      const argDef = this.parseValidatorCall(initializer.getText());
+      const argDef = this.parseValidatorExpression(initializer);
       if (argDef) {
         argDefinitions[argName] = argDef;
       }
@@ -264,59 +297,91 @@ export class ConvexAstParser {
   }
 
   /**
-   * Parse a validator call (e.g., v.string(), v.number(), v.optional(v.string()))
+   * Parse a validator expression using AST analysis
    */
-  private parseValidatorCall(validatorText: string): ArgDefinition | null {
-    // Handle v.optional() wrapper
-    const optionalMatch = validatorText.match(OPTIONAL_VALIDATOR_REGEX);
-    if (optionalMatch) {
-      const innerValidator = this.parseValidatorCall(optionalMatch[1]);
-      return innerValidator ? { ...innerValidator, required: false } : null;
+  private parseValidatorExpression(
+    expression: Expression
+  ): ArgDefinition | null {
+    // Handle call expressions (v.string(), v.optional(), etc.)
+    if (expression.getKind() === SyntaxKind.CallExpression) {
+      const callExpr = expression as CallExpression;
+      return this.parseValidatorCallExpression(callExpr);
     }
 
-    // Map basic validator types
+    // Handle property access expressions (v.string, v.number)
+    if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
+      const propAccess = expression as PropertyAccessExpression;
+      return this.parseValidatorPropertyAccess(propAccess);
+    }
+
+    // Default to string type for unknown expressions
+    return { type: "string", required: true };
+  }
+
+  /**
+   * Parse validator call expressions like v.string(), v.optional(v.number())
+   */
+  private parseValidatorCallExpression(
+    callExpr: CallExpression
+  ): ArgDefinition | null {
+    const expression = callExpr.getExpression();
+
+    // Handle v.optional() wrapper
+    if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
+      const propAccess = expression as PropertyAccessExpression;
+      const methodName = propAccess.getName();
+
+      if (methodName === "optional") {
+        // Parse the inner validator
+        const args = callExpr.getArguments();
+        if (args.length > 0) {
+          const firstArg = args[0];
+          if (Node.isExpression(firstArg)) {
+            const innerValidator = this.parseValidatorExpression(firstArg);
+            return innerValidator
+              ? { ...innerValidator, required: false }
+              : null;
+          }
+        }
+        return null;
+      }
+
+      // Handle other validator methods
+      return this.parseValidatorMethodCall(methodName);
+    }
+
+    return null;
+  }
+
+  /**
+   * Parse validator property access like v.string (without call)
+   */
+  private parseValidatorPropertyAccess(
+    propAccess: PropertyAccessExpression
+  ): ArgDefinition | null {
+    const methodName = propAccess.getName();
+    return this.parseValidatorMethodCall(methodName);
+  }
+
+  /**
+   * Map validator method names to argument types
+   */
+  private parseValidatorMethodCall(methodName: string): ArgDefinition | null {
     const validatorTypeMap: Record<string, string> = {
-      "v.string()": "string",
-      "v.number()": "number",
-      "v.float64()": "number",
-      "v.int64()": "integer",
-      "v.bigint()": "integer",
-      "v.boolean()": "boolean",
+      string: "string",
+      number: "number",
+      float64: "number",
+      int64: "integer",
+      bigint: "integer",
+      boolean: "boolean",
+      id: "string",
+      literal: "string",
+      union: "string", // Simplified for now
+      object: "object",
+      array: "array",
     };
 
-    // Check for basic types
-    for (const [pattern, type] of Object.entries(validatorTypeMap)) {
-      if (validatorText === pattern) {
-        return { type, required: true };
-      }
-    }
-
-    // Handle v.id() calls
-    if (validatorText.startsWith("v.id(")) {
-      return { type: "string", required: true };
-    }
-
-    // Handle v.literal() calls
-    if (validatorText.startsWith("v.literal(")) {
-      return { type: "string", required: true };
-    }
-
-    // Handle v.union() calls
-    if (validatorText.startsWith("v.union(")) {
-      return { type: "string", required: true }; // Simplified for now
-    }
-
-    // Handle v.object() calls
-    if (validatorText.startsWith("v.object(")) {
-      return { type: "object", required: true };
-    }
-
-    // Handle v.array() calls
-    if (validatorText.startsWith("v.array(")) {
-      return { type: "array", required: true };
-    }
-
-    // Default to string type for unknown validators
-    return { type: "string", required: true };
+    const type = validatorTypeMap[methodName];
+    return type ? { type, required: true } : { type: "string", required: true };
   }
 }
