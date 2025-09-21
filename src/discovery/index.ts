@@ -2,13 +2,10 @@ import { generateJsonSchemaFromArgs } from "../schema-generator";
 import type { FunctionDefinition, ParsedFunction } from "../types";
 import { ConvexAstParser } from "./ast-parser";
 
-// Re-export for advanced usage
-export { ConvexAstParser } from "./ast-parser";
-
 /**
  * Options for Convex function discovery
  */
-export type DiscoveryOptions = {
+type DiscoveryOptions = {
   /** Path to the Convex directory (default: "./convex") */
   convexDir?: string;
 };
@@ -17,9 +14,7 @@ export type DiscoveryOptions = {
  * Discover Convex functions by parsing TypeScript source files
  * Uses AST analysis to extract function definitions, types, and arguments
  */
-export function discoverFunctions(
-  options: DiscoveryOptions = {}
-): ParsedFunction[] {
+function discoverFunctions(options: DiscoveryOptions = {}): ParsedFunction[] {
   const { convexDir = "./convex" } = options;
   const parser = new ConvexAstParser();
   const discoveredFunctions = parser.discoverConvexFunctions(convexDir);
@@ -36,7 +31,7 @@ export function discoverFunctions(
  * Convert function definitions to parsed functions
  * (for backward compatibility with provided functions)
  */
-export function convertFunctionDefinitions(
+function convertFunctionDefinitions(
   functions: FunctionDefinition[]
 ): ParsedFunction[] {
   return functions.map((fn) => ({
@@ -46,3 +41,6 @@ export function convertFunctionDefinitions(
     jsonSchema: generateJsonSchemaFromArgs(fn.args),
   }));
 }
+
+// Export only for internal use
+export { discoverFunctions, convertFunctionDefinitions };

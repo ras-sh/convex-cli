@@ -111,45 +111,6 @@ const cli = createCli({
 cli.run({ logger: console });
 ```
 
-## Advanced Usage
-
-### Custom Function Definitions
-
-If you need more control, you can provide explicit function definitions:
-
-```typescript
-import { createCli } from "@ras-sh/convex-cli";
-import { api } from "../convex/_generated/api.js";
-
-const cli = createCli({
-  api,
-  functions: [
-    {
-      name: "createUser",
-      type: "mutation",
-      module: "users",
-      args: {
-        email: { type: "string", required: true },
-        age: { type: "number", required: true },
-        active: { type: "boolean", required: false },
-      },
-    },
-  ],
-});
-```
-
-### Custom Convex Directory
-
-```typescript
-import { createCli, discoverFunctions } from "@ras-sh/convex-cli";
-import { api } from "../convex/_generated/api.js";
-
-const functions = discoverFunctions({
-  convexDir: "./custom-convex-dir",
-});
-
-const cli = createCli({ api, functions });
-```
 
 ## API Reference
 
@@ -167,23 +128,6 @@ Creates a CLI instance.
 
 **Returns:** CLI object with `run()` and `buildProgram()` methods
 
-### `discoverFunctions(options?)`
-
-Manually discover functions with custom options.
-
-**Parameters:**
-- `options.convexDir?`: Custom convex directory path (default: "./convex")
-
-### `ConvexAstParser`
-
-Advanced users can directly use the AST parser for fine-grained control:
-
-```typescript
-import { ConvexAstParser } from "@ras-sh/convex-cli";
-
-const parser = new ConvexAstParser();
-const functions = parser.discoverConvexFunctions("./convex");
-```
 
 ## AST-Based Discovery
 

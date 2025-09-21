@@ -13,14 +13,8 @@ import type {
 } from "./types";
 import { defaultLogger, formatError } from "./utils";
 
-// Export discovery functionality for advanced usage
-export {
-  ConvexAstParser,
-  type DiscoveryOptions,
-  discoverFunctions,
-} from "./discovery/index";
-export type { FunctionDefinition } from "./types";
-export * from "./types";
+// Export only main types needed by users
+export type { ConvexCli, ConvexCliParams, ConvexCliRunParams } from "./types";
 
 /**
  * Create a CLI from a Convex API object.
@@ -132,6 +126,3 @@ function handleCliError(
   logger.error?.(formatError(error));
   processInstance.exit(1);
 }
-
-// Re-export for backward compatibility
-export const convexCli = createCli;
