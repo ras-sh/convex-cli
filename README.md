@@ -1,21 +1,42 @@
 ![Convex CLI Banner](./static/banner.png)
 
-# Convex CLI
+# @ras-sh/convex-cli [![npm version](https://img.shields.io/npm/v/@ras-sh/convex-cli.svg)](https://www.npmjs.com/package/@ras-sh/convex-cli)
 
 Create a fully type-safe CLI from your Convex API. Functions are discovered automatically and exposed as commands, making it easy to use your backend from the terminal or distribute access externally.
 
 > **Note**: This is an independent project and is not officially affiliated with Convex or the Convex team.
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Command Structure](#command-structure)
+  - [Argument Handling](#argument-handling)
+  - [Function Types](#function-types)
+  - [Function Discovery](#function-discovery)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+  - [Programmatic Configuration](#programmatic-configuration)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
 
-- 🚀 **Type-Safe**: Leverages your Convex generated types for automatic argument validation
-- 🔍 **AST-Based Discovery**: Intelligent TypeScript analysis using ts-morph for accurate function discovery
-- 📝 **Smart Parsing**: Converts CLI arguments to proper Convex function inputs with type coercion
-- 🎯 **Function Types**: Full support for queries, mutations, and actions
-- 🏗️ **Modular Organization**: Functions organized by modules with kebab-case naming
-- 🎨 **Zero Configuration**: Works out of the box with any Convex project
+- 🔍 **Automatic Function Discovery**: Parses your `convex/_generated/api.d.ts` to automatically discover all your Convex functions without manual registration
+- 🛡️ **Type-Safe Arguments**: Uses your Convex function signatures to validate and convert CLI arguments, preventing runtime errors
+- 📊 **AST-Based Analysis**: Leverages TypeScript's AST via ts-morph to understand complex function parameters and nested types
+- 🔄 **Smart Type Coercion**: Automatically converts CLI strings to appropriate Convex types (booleans, IDs, objects, arrays)
+- 📁 **Modular Command Structure**: Organizes commands by your Convex modules with automatic kebab-case conversion
+- ⚡ **Full Convex Support**: Works with queries, mutations, and actions with proper error handling and authentication
 
 ## Installation
+
+**Prerequisites:**
+- Node.js 20+
+- A Convex project with generated types (`npx convex dev`)
 
 ```bash
 npm install @ras-sh/convex-cli
@@ -25,18 +46,31 @@ pnpm add @ras-sh/convex-cli
 bun add @ras-sh/convex-cli
 ```
 
+> **Note**: This package requires `convex` as a peer dependency. Make sure it's installed in your project.
+
 ## Quick Start
 
-1. **Set up your Convex URL:**
+Get up and running in minutes with these simple steps.
+
+### 1. Environment Setup
+
+Set up your Convex deployment URL:
+
 ```bash
+# For production
 export CONVEX_URL="https://your-deployment.convex.cloud"
-# or for local development
+
+# For local development (default)
 export CONVEX_URL="http://localhost:3210"
-# or use deployment name
+
+# Or use deployment name
 export CONVEX_DEPLOYMENT="your-deployment-name"
 ```
 
-2. **Create your CLI script:**
+### 2. Create CLI Entry Point
+
+Create `src/cli.ts` in your project:
+
 ```typescript
 // src/cli.ts
 import { createCli } from "@ras-sh/convex-cli";
@@ -45,7 +79,10 @@ import { api } from "../convex/_generated/api.js";
 createCli({ api }).run({ logger: console });
 ```
 
-3. **Add CLI script to package.json:**
+### 3. Add NPM Script
+
+Update your `package.json`:
+
 ```json
 {
   "scripts": {
@@ -54,19 +91,24 @@ createCli({ api }).run({ logger: console });
 }
 ```
 
-4. **Run your Convex functions:**
+### 4. Generate Types & Test
+
+Ensure your Convex types are generated, then test the CLI:
+
 ```bash
-# Query examples
+# Generate Convex types (if not already done)
+npx convex dev
+
+# Test the CLI
+npm run cli --help
+
+# Try a command
 npm run cli todos get-all
-npm run cli health-check get
-
-# Mutation examples
-npm run cli todos create --text "Buy groceries"
-npm run cli todos toggle --id "j57d6h3k66q0q0q0q0q0q0q0q0q0" --completed true
-
-# Module functions (kebab-case conversion)
-npm run cli todos delete-todo --id "j57d6h3k66q0q0q0q0q0q0q0q0q0"
 ```
+
+### 🎉 You're Done!
+
+Your CLI is now ready. Run `npm run cli --help` to see all available commands automatically discovered from your Convex API.
 
 ## Usage
 
@@ -176,3 +218,50 @@ cli.run({
   argv: process.argv,    // Optional: custom argv
 });
 ```
+
+## Examples
+
+Assuming you have a Convex backend with todo functions:
+
+```typescript
+// convex/todos.ts
+export const getAll = query(() => { /* ... */ });
+export const create = mutation(({ text }: { text: string }) => { /* ... */ });
+export const toggle = mutation(({ id }: { id: Id<"todos"> }) => { /* ... */ });
+```
+
+Your CLI commands would be:
+
+```bash
+# List all todos
+npm run cli todos get-all
+
+# Create a new todo
+npm run cli todos create --text "Buy groceries"
+
+# Toggle todo completion
+npm run cli todos toggle --id "j57d6h3k66q0q0q0q0q0q0q0q0q0" --completed true
+```
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Setting up the development environment
+- Running tests and linting
+- Code quality standards
+- Submitting pull requests
+
+### Quick Development Setup
+
+```bash
+git clone https://github.com/ras-sh/convex-cli.git
+cd convex-cli
+pnpm install
+pnpm test
+pnpm run build
+```
+
+## License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
