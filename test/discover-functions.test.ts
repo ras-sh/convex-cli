@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ConvexAstParser } from "../src/discovery/ast-parser";
+import type { FunctionDefinition } from "../src/types";
 
 // Mock fs module
 vi.mock("node:fs");
@@ -11,12 +12,13 @@ const mockFs = vi.mocked(fs);
 describe("ConvexAstParser", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    ConvexAstParser.resetInstance();
   });
 
   it("should return empty array when api.d.ts does not exist", () => {
     mockFs.existsSync.mockReturnValue(false);
 
-    const parser = new ConvexAstParser();
+    const parser = ConvexAstParser.getInstance();
     const result = parser.discoverConvexFunctions();
 
     expect(result).toEqual([]);
@@ -98,21 +100,21 @@ export const getUser = query({
       return "";
     });
 
-    const parser = new ConvexAstParser();
+    const parser = ConvexAstParser.getInstance();
     const result = parser.discoverConvexFunctions();
 
     const expectedFunctionsCount = 4;
     expect(result).toHaveLength(expectedFunctionsCount);
 
     const todosGetAll = result.find(
-      (fn) => fn.name === "getAll" && fn.module === "todos"
+      (fn: FunctionDefinition) => fn.name === "getAll" && fn.module === "todos"
     );
     expect(todosGetAll).toBeDefined();
     expect(todosGetAll?.type).toBe("query");
     expect(todosGetAll?.args).toEqual({});
 
     const todosCreate = result.find(
-      (fn) => fn.name === "create" && fn.module === "todos"
+      (fn: FunctionDefinition) => fn.name === "create" && fn.module === "todos"
     );
     expect(todosCreate).toBeDefined();
     expect(todosCreate?.type).toBe("mutation");
@@ -122,7 +124,7 @@ export const getUser = query({
     });
 
     const todosToggle = result.find(
-      (fn) => fn.name === "toggle" && fn.module === "todos"
+      (fn: FunctionDefinition) => fn.name === "toggle" && fn.module === "todos"
     );
     expect(todosToggle).toBeDefined();
     expect(todosToggle?.type).toBe("mutation");
@@ -132,7 +134,7 @@ export const getUser = query({
     });
 
     const usersGetUser = result.find(
-      (fn) => fn.name === "getUser" && fn.module === "users"
+      (fn: FunctionDefinition) => fn.name === "getUser" && fn.module === "users"
     );
     expect(usersGetUser).toBeDefined();
     expect(usersGetUser?.type).toBe("query");
@@ -166,7 +168,7 @@ export const ping = query({
       return "";
     });
 
-    const parser = new ConvexAstParser();
+    const parser = ConvexAstParser.getInstance();
     const result = parser.discoverConvexFunctions();
 
     expect(result).toHaveLength(1);
@@ -210,7 +212,7 @@ export const testFunction = mutation({
       return "";
     });
 
-    const parser = new ConvexAstParser();
+    const parser = ConvexAstParser.getInstance();
     const result = parser.discoverConvexFunctions();
 
     expect(result).toHaveLength(1);

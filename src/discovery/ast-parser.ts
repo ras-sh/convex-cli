@@ -22,9 +22,10 @@ const JS_SUFFIX_LENGTH = 3; // ".js"
  * Provides accurate and robust function discovery through static analysis
  */
 export class ConvexAstParser {
+  private static instance: ConvexAstParser;
   private readonly project: Project;
 
-  constructor() {
+  private constructor() {
     this.project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: {
@@ -35,6 +36,24 @@ export class ConvexAstParser {
         noEmit: true,
       },
     });
+  }
+
+  /**
+   * Get singleton instance to reuse ts-morph Project across calls
+   */
+  static getInstance(): ConvexAstParser {
+    if (!ConvexAstParser.instance) {
+      ConvexAstParser.instance = new ConvexAstParser();
+    }
+    return ConvexAstParser.instance;
+  }
+
+  /**
+   * Reset singleton instance (primarily for testing)
+   */
+  static resetInstance(): void {
+    // biome-ignore lint/suspicious/noExplicitAny: Required for testing singleton reset
+    (ConvexAstParser as any).instance = undefined;
   }
 
   /**
@@ -142,10 +161,11 @@ export class ConvexAstParser {
     const functions: FunctionDefinition[] = [];
 
     try {
-      // Add the source file to the project
-      const sourceFile = this.project.createSourceFile(filePath, content, {
-        overwrite: true,
-      });
+      // Get or create the source file in the project (reuse if already exists)
+      let sourceFile = this.project.getSourceFile(filePath);
+      if (!sourceFile) {
+        sourceFile = this.project.createSourceFile(filePath, content);
+      }
 
       // Find all variable declarations with export modifier
       const exportedVariables = sourceFile

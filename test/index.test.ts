@@ -3,17 +3,33 @@ import { createCli } from "../src/index";
 import type { FunctionDefinition } from "../src/types";
 
 vi.mock("../src/discovery/ast-parser");
+vi.mock("../src/discovery/cache");
 vi.mock("../src/convex-client");
 
 import { ConvexCaller } from "../src/convex-client";
 import { ConvexAstParser } from "../src/discovery/ast-parser";
+import { FunctionCache } from "../src/discovery/cache";
 
 const mockConvexAstParser = vi.mocked(ConvexAstParser);
+const mockGetInstance = vi.fn();
+mockConvexAstParser.getInstance = mockGetInstance;
+
+const mockFunctionCache = vi.mocked(FunctionCache);
+const mockCacheGetInstance = vi.fn();
+const mockCacheGet = vi.fn();
+const mockCacheSet = vi.fn();
+mockFunctionCache.getInstance = mockCacheGetInstance;
+mockCacheGetInstance.mockReturnValue({
+  get: mockCacheGet,
+  set: mockCacheSet,
+});
+
 const _mockConvexCaller = vi.mocked(ConvexCaller);
 
 describe("createCli", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    FunctionCache.resetInstance();
   });
 
   it("should create CLI with provided functions", () => {
@@ -45,12 +61,10 @@ describe("createCli", () => {
     const mockDiscoverConvexFunctions = vi
       .fn()
       .mockReturnValue(discoveredFunctions);
-    mockConvexAstParser.mockImplementation(
-      () =>
-        ({
-          discoverConvexFunctions: mockDiscoverConvexFunctions,
-        }) as any
-    );
+    mockGetInstance.mockReturnValue({
+      discoverConvexFunctions: mockDiscoverConvexFunctions,
+    } as any);
+    mockCacheGet.mockReturnValue(null); // Cache miss
 
     const cli = createCli({ api: mockApi, url: "http://localhost:3210" });
 
@@ -62,12 +76,10 @@ describe("createCli", () => {
   it("should throw error when no functions are found", () => {
     const mockApi = {};
     const mockDiscoverConvexFunctions = vi.fn().mockReturnValue([]);
-    mockConvexAstParser.mockImplementation(
-      () =>
-        ({
-          discoverConvexFunctions: mockDiscoverConvexFunctions,
-        }) as any
-    );
+    mockGetInstance.mockReturnValue({
+      discoverConvexFunctions: mockDiscoverConvexFunctions,
+    } as any);
+    mockCacheGet.mockReturnValue(null); // Cache miss
 
     expect(() => {
       createCli({ api: mockApi, url: "http://localhost:3210" });
