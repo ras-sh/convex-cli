@@ -6,7 +6,7 @@
   "files": [
     "dist"
   ],
-  "homepage": "https://ras.sh/convex-cli",
+  "homepage": "https://ras.sh",
   "bugs": {
     "url": "https://github.com/ras-sh/convex-cli/issues",
     "email": "hi@ras.sh"
@@ -45,6 +45,9 @@
     "typescript": "^5.9.2",
     "ultracite": "5.4.5",
     "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
     "convex": "^1.0.0"
