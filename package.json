@@ -40,9 +40,10 @@
     "convex": "^1.27.1",
     "convex-helpers": "^0.1.104",
     "lefthook": "^1.13.1",
+    "pkg-pr-new": "^0.0.60",
     "tsdown": "^0.15.4",
     "typescript": "^5.9.2",
-    "ultracite": "5.4.4",
+    "ultracite": "5.4.5",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
