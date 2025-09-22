@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import type { ConvexCaller } from "../convex-client";
 import type { ConvexCliRunParams, JsonSchema, ParsedFunction } from "../types";
-import { kebabCase } from "../utils";
+import { defaultLogger, kebabCase } from "../utils";
 import { addOptionForProperty } from "./options";
 
 /**
@@ -95,7 +95,7 @@ function addFunctionCommand(
   caller: ConvexCaller,
   runParams?: ConvexCliRunParams
 ): void {
-  const logger = runParams?.logger;
+  const logger = { ...defaultLogger, ...runParams?.logger };
   const parts = fn.path.split(".");
   const functionName = parts.at(-1) || fn.path;
   const command = new Command(kebabCase(functionName));
@@ -135,10 +135,10 @@ function addFunctionCommand(
 
       // Log the result
       if (result !== null && result !== undefined) {
-        logger?.info?.(result);
+        logger.info?.(result);
       }
     } catch (error) {
-      logger?.error?.(error);
+      logger.error?.(error);
       process.exit(1);
     }
   });
