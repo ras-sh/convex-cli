@@ -76,7 +76,7 @@ Create `src/cli.ts` in your project:
 import { createCli } from "@ras-sh/convex-cli";
 import { api } from "../convex/_generated/api.js";
 
-createCli({ api }).run({ logger: console });
+createCli({ api }).run();
 ```
 
 ### 3. Add NPM Script
@@ -206,7 +206,7 @@ const cli = createCli({
 });
 
 // Basic usage
-cli.run({ logger: console });
+cli.run();
 
 // Advanced usage with custom configuration
 cli.run({

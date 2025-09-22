@@ -13,7 +13,7 @@ import type {
 } from "./types";
 import { defaultLogger, formatError } from "./utils";
 
-// Export only main types needed by users
+// Export main types needed by users
 export type { ConvexCli, ConvexCliParams, ConvexCliRunParams } from "./types";
 
 /**

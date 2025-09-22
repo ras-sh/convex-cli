@@ -17,10 +17,10 @@ export function formatError(error: unknown): string {
 }
 
 export const defaultLogger = {
-  info: (_message: unknown) => {
-    // No-op for default logger
+  info: (message: unknown) => {
+    console.info(message);
   },
-  error: (_message: unknown) => {
-    // No-op for default logger
+  error: (message: unknown) => {
+    console.error(message);
   },
 };
