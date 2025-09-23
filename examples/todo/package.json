@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@ras-sh/convex-cli": "file:../..",
-    "convex": "^1.27.2"
+    "convex": "^1.27.3"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
