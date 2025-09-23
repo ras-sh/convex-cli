@@ -1,4 +1,4 @@
-![Convex CLI Banner](https://ras.sh/static/convex-cli.png)
+![Convex CLI Banner](https://ras.sh/static/convex-cli.webp)
 
 # @ras-sh/convex-cli [![npm version](https://img.shields.io/npm/v/@ras-sh/convex-cli.svg)](https://www.npmjs.com/package/@ras-sh/convex-cli)
 

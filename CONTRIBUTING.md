@@ -7,7 +7,7 @@ Thank you for your interest in contributing to the Convex CLI! This guide will h
 ### Prerequisites
 
 - Node.js 20+
-- pnpm (recommended) or npm/bun
+- pnpm
 
 ### Setup
 
@@ -34,23 +34,6 @@ pnpm run fix
 
 # Build the project
 pnpm run build
-```
-
-### Project Structure
-
-```
-src/
-├── index.ts              # Main entry point
-├── types.ts              # TypeScript definitions
-├── convex-client.ts      # Convex API caller
-├── schema-generator.ts   # JSON schema utilities
-├── utils.ts              # Utility functions
-├── cli/
-│   ├── commands.ts       # CLI command construction
-│   └── options.ts        # Option and argument handling
-└── discovery/
-    ├── index.ts          # Function discovery coordination
-    └── ast-parser.ts     # TypeScript AST-based discovery
 ```
 
 ## Examples
