@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite"],
   "files": {
-    "includes": ["**"]
+    "includes": ["**", "!**/convex/_generated"]
   },
   "linter": {
     "rules": {
@@ -10,7 +10,8 @@
         "noConsole": "off"
       },
       "style": {
-        "noMagicNumbers": "off"
+        "noMagicNumbers": "off",
+        "useFilenamingConvention": "off"
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": "off"
