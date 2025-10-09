@@ -6,8 +6,17 @@
   },
   "linter": {
     "rules": {
+      "suspicious": {
+        "noConsole": "off"
+      },
       "style": {
         "noMagicNumbers": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off"
       }
     }
   }
