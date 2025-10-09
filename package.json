@@ -1,0 +1,66 @@
+{
+  "name": "@ras-sh/template-node-library",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Template for Node.js library projects.",
+  "keywords": [],
+  "homepage": "https://ras.sh",
+  "bugs": {
+    "url": "https://github.com/ras-sh/template-node-library/issues",
+    "email": "hi@ras.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ras-sh/template-node-library"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Richard Solomou",
+    "email": "hi@ras.sh",
+    "url": "https://ras.sh"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check-types": "tsc --noEmit",
+    "check": "ultracite check",
+    "fix": "ultracite fix --unsafe",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "prepublishOnly": "pnpm check && pnpm check-types && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
+    "@changesets/cli": "^2.29.7",
+    "@ras-sh/typescript-config": "^0.0.2",
+    "@types/node": "^24.7.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "lefthook": "^1.13.6",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "ultracite": "5.5.0",
+    "vitest": "^3.2.4"
+  }
+}
