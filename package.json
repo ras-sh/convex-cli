@@ -1,6 +1,6 @@
 {
   "name": "@ras-sh/convex-cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "Turn your Convex backend into a type-safe CLI with automatic function discovery and input validation.",
   "keywords": [
