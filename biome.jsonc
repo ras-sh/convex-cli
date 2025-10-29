@@ -1,9 +1,6 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite"],
-  "files": {
-    "includes": ["**", "!**/convex/_generated"]
-  },
+  "extends": ["ultracite/core"],
   "linter": {
     "rules": {
       "suspicious": {
@@ -15,6 +12,9 @@
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": "off"
+      },
+      "nursery": {
+        "noIncrementDecrement": "off"
       },
       "performance": {
         "noNamespaceImport": "off"

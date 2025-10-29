@@ -4,8 +4,15 @@ on:
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [release]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
 
 jobs:
   release:
@@ -21,23 +28,32 @@ jobs:
           version: 10
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # TODO: Uncomment this for your own repository
-      # - name: Create Release Pull Request or Publish to npm
-      #   id: changesets
-      #   uses: changesets/action@v1
-      #   with:
-      #     publish: pnpm release
-      #     version: pnpm version
-      #     commit: "chore: version packages"
-      #     title: "chore: version packages"
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run Changesets (version or publish)
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm run changeset:version
+          publish: pnpm run changeset:publish
+          commit: "ci: version packages"
+          title: "ci: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Auto-merge Changesets PR
+        if: steps.changesets.outputs.hasChangesets == 'true'
+        run: |
+          gh pr merge --squash "$PR_NUMBER"
+          gh api --method POST /repos/$REPO/dispatches -f 'event_type=release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}

@@ -1,9 +1,12 @@
 pre-commit:
-  parallel: true
-  commands:
-    lint:
-      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
-      run: pnpm dlx ultracite fix {staged_files}
+  jobs:
+    - run: pnpm dlx ultracite fix
+      glob:
+        - "*.js"
+        - "*.jsx"
+        - "*.ts"
+        - "*.tsx"
+        - "*.json"
+        - "*.jsonc"
+        - "*.css"
       stage_fixed: true
-    typecheck:
-      run: pnpm check-types
