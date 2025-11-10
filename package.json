@@ -64,9 +64,9 @@
     "@types/node": "^24.9.2",
     "@vitest/coverage-v8": "^4.0.4",
     "lefthook": "^2.0.1",
-    "tsdown": "^0.15.11",
+    "tsdown": "^0.16.1",
     "typescript": "^5.9.3",
-    "ultracite": "6.0.5",
+    "ultracite": "6.3.2",
     "vitest": "^4.0.4"
   },
   "peerDependencies": {
